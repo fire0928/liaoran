@@ -11,7 +11,7 @@ async function apiFetch(path, method = 'GET', body = null) {
   if (res.status === 401) {
     authToken = ''; localStorage.removeItem('liaoran_admin_token');
     document.getElementById('loginOverlay').style.display = 'flex';
-    throw new Error('登录已过�?);
+    throw new Error('登录已过期');
   }
   const data = await res.json();
   if (data.code !== 0) throw new Error(data.message || '请求失败');
@@ -34,7 +34,7 @@ async function doAdminLogin() {
   const password = document.getElementById('adminPassword').value.trim();
   const errEl = document.getElementById('loginError');
   if (!phone) { errEl.textContent = '请输入手机号'; errEl.style.display = 'block'; return; }
-  if (!password) { errEl.textContent = '请输入密�?; errEl.style.display = 'block'; return; }
+  if (!password) { errEl.textContent = '请输入密码'; errEl.style.display = 'block'; return; }
   try {
     const res = await fetch(API_BASE + '/api/v1/auth/login/admin', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone, password }) });
     const data = await res.json();
@@ -43,7 +43,7 @@ async function doAdminLogin() {
       localStorage.setItem('liaoran_admin_token', authToken);
       document.getElementById('loginOverlay').style.display = 'none';
       errEl.style.display = 'none';
-      document.getElementById('adminNameDisplay').textContent = currentUser.nickname || '管理�?;
+      document.getElementById('adminNameDisplay').textContent = currentUser.nickname || '管理员';
       loadDashboardData();
     } else { errEl.textContent = data.message || '登录失败'; errEl.style.display = 'block'; }
   } catch (e) { errEl.textContent = '网络连接失败: ' + e.message; errEl.style.display = 'block'; }
@@ -53,7 +53,7 @@ async function doAdminLogin() {
   if (authToken) {
     document.getElementById('loginOverlay').style.display = 'none';
     apiFetch('/api/v1/auth/me').then(user => {
-      currentUser = user; document.getElementById('adminNameDisplay').textContent = user.nickname || '管理�?;
+      currentUser = user; document.getElementById('adminNameDisplay').textContent = user.nickname || '管理员';
       loadDashboardData();
     }).catch(() => { authToken = ''; localStorage.removeItem('liaoran_admin_token'); document.getElementById('loginOverlay').style.display = 'flex'; });
   }
@@ -70,7 +70,7 @@ function toast(msg, type='success') {
 }
 
 // ========== 工具函数 ==========
-function formatNum(n) { if (!n && n !== 0) return '0'; return n >= 10000 ? (n/10000).toFixed(1) + '�? : String(n); }
+function formatNum(n) { if (!n && n !== 0) return '0'; return n >= 10000 ? (n/10000).toFixed(1) + '万' : String(n); }
 function avatarColor(id) { const colors = ['#E8835A','#6BAF9E','#6B8EC7','#D4943A','#C75C5C','#8B7EC8']; let hash = 0; for (let i = 0; i < (id||'A').length; i++) hash = ((hash<<5)-hash) + id.charCodeAt(i); return colors[Math.abs(hash) % colors.length]; }
 const catLabels = { emotion: '情绪评估', personality: '人格特质', career: '职业发展', relationship: '人际关系', academic: '学业成长' };
 const catTags = { emotion: 'emotion-tag', personality: 'personality-tag', career: 'career-tag', relationship: 'rel-tag', academic: 'acad-tag' };
@@ -79,9 +79,9 @@ const catTags = { emotion: 'emotion-tag', personality: 'personality-tag', career
 function switchPage(pageId) {
   document.querySelectorAll('.nav-item').forEach(item => item.classList.toggle('active', item.dataset.page === pageId));
   document.querySelectorAll('.page').forEach(page => page.classList.toggle('active', page.id === 'page-' + pageId));
-  const titles = { 'dashboard':'数据仪表�?,'users':'用户管理','assessments':'测评管理','assess-editor':'测评内容编辑','entertainment':'娱乐内容管理','entertainment-editor':'娱乐内容编辑','ai-analysis':'AI 分析中心','treehole':'树洞审核','ai-agents':'AI Agent 配置','crisis':'危机预警','settings':'系统设置','logs':'操作日志' };
-  document.getElementById('pageTitle').textContent = titles[pageId] || '数据仪表�?;
-  document.getElementById('breadcrumbCurrent').textContent = titles[pageId] || '数据仪表�?;
+  const titles = { 'dashboard':'数据仪表盘','users':'用户管理','assessments':'测评管理','assess-editor':'测评内容编辑','entertainment':'娱乐内容管理','entertainment-editor':'娱乐内容编辑','ai-analysis':'AI 分析中心','treehole':'树洞审核','ai-agents':'AI Agent 配置','crisis':'危机预警','settings':'系统设置','logs':'操作日志' };
+  document.getElementById('pageTitle').textContent = titles[pageId] || '数据仪表盘';
+  document.getElementById('breadcrumbCurrent').textContent = titles[pageId] || '数据仪表盘';
   if (pageId === 'dashboard') loadDashboardData();
   if (pageId === 'users') loadUsersData();
   if (pageId === 'assessments') loadAssessmentsData();
@@ -96,7 +96,7 @@ function switchPage(pageId) {
   if (pageId === 'settings') loadSmsSettings();
 }
 
-// ==================== 1. 数据仪表�?====================
+// ==================== 1. 数据仪表盘 ====================
 async function loadDashboardData() {
   try {
     const data = await apiFetch('/api/v1/admin/dashboard');
@@ -118,15 +118,15 @@ async function loadDashboardData() {
         <td style="font-weight:600;color:${i<3?'var(--color-primary)':'#999'}">${i+1}</td>
         <td>${h.name}</td><td style="font-weight:500">${h.completions||0}</td>
         <td style="font-weight:600">${h.avg_score ? h.avg_score.toFixed(1) : '---'}</td>
-        <td style="color:var(--color-primary)">�?{Math.floor(Math.random()*20+5)}%</td>
+        <td style="color:var(--color-primary)">↑${Math.floor(Math.random()*20+5)}%</td>
       </tr>`).join('');
     }
-    // 更新AI对话�?
+    // 更新AI对话量
     const chatBars = dashPage.querySelectorAll('.progress-bar + div');
     if (data.agentChats) {
       data.agentChats.forEach((a,i) => { if (chatBars[i]) chatBars[i].textContent = a.chat_count.toLocaleString(); });
     }
-  } catch (e) { console.error('加载仪表盘失�?', e); }
+  } catch (e) { console.error('加载仪表盘失败:', e); }
 }
 
 // ==================== 2. 用户管理 ====================
@@ -150,8 +150,8 @@ async function loadUsersData() {
       <td><div class="action-btns"><button class="action-link" onclick="viewUser('${u.id}')">查看</button><button class="action-link" onclick="editUser('${u.id}','${u.nickname||''}','${u.status||'active'}','${u.phone||''}')">编辑</button></div></td>
     </tr>`).join('');
     const pageInfo = document.querySelector('#page-users .pagination-info');
-    if (pageInfo) pageInfo.textContent = `�?${data.pagination.total} 条记录，�?${data.pagination.page}/${data.pagination.totalPages} 页`;
-    // 更新状态筛选下拉�?
+    if (pageInfo) pageInfo.textContent = `共 ${data.pagination.total} 条记录，第 ${data.pagination.page}/${data.pagination.totalPages} 页`;
+    // 更新状态筛选下拉值
     const statSelect = document.querySelector('#page-users .table-filters select:first-child');
     if (statSelect) statSelect.value = usersFilter.status;
   } catch (e) { console.error('加载用户失败:', e); }
@@ -162,16 +162,16 @@ async function viewUser(id) {
     const u = await apiFetch('/api/v1/admin/users/' + id);
     openModal('用户详情', `
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:14px;">
-        <div><b>昵称�?/b>${u.nickname||'---'}</div><div><b>手机�?/b>${u.phone||'---'}</div>
-        <div><b>邮箱�?/b>${u.email||'---'}</div><div><b>状态：</b>${u.status||'---'}</div>
-        <div><b>会员等级�?/b>Lv${u.member_level||0}</div><div><b>积分�?/b>${u.points||0}</div>
-        <div><b>压力指数�?/b>${u.stress_level||0}</div><div><b>情绪稳定性：</b>${u.emotional_stability||0}</div>
-        <div><b>风险等级�?/b><span style="color:${u.risk_level==='high'?'#C62828':'#2E7D32'}">${u.risk_level==='high'?'�?高风�?:'正常'}</span></div>
-        <div><b>当前心情�?/b>${u.current_mood||'---'}</div>
+        <div><b>昵称：</b>${u.nickname||'---'}</div><div><b>手机：</b>${u.phone||'---'}</div>
+        <div><b>邮箱：</b>${u.email||'---'}</div><div><b>状态：</b>${u.status||'---'}</div>
+        <div><b>会员等级：</b>Lv${u.member_level||0}</div><div><b>积分：</b>${u.points||0}</div>
+        <div><b>压力指数：</b>${u.stress_level||0}</div><div><b>情绪稳定性：</b>${u.emotional_stability||0}</div>
+        <div><b>风险等级：</b><span style="color:${u.risk_level==='high'?'#C62828':'#2E7D32'}">${u.risk_level==='high'?'⚠ 高风险':'正常'}</span></div>
+        <div><b>当前心情：</b>${u.current_mood||'---'}</div>
         <div style="grid-column:1/-1;margin-top:12px;padding-top:12px;border-top:1px solid #eee;">
-          <b>统计�?/b>测评${u.assessCount||0}�?| 对话${u.chatCount||0}�?| 树洞${u.treeholeCount||0}�?
+          <b>统计：</b>测评${u.assessCount||0}次 | 对话${u.chatCount||0}次 | 树洞${u.treeholeCount||0}条
         </div>
-        ${u.assessments && u.assessments.length ? `<div style="grid-column:1/-1;margin-top:8px;"><b>最近测评：</b><br>${u.assessments.map(a => `�?${a.scale_name} - ${a.created_at?.[0]?a.created_at.slice(0,10):'---'}`).join('<br>')}</div>` : ''}
+        ${u.assessments && u.assessments.length ? `<div style="grid-column:1/-1;margin-top:8px;"><b>最近测评：</b><br>${u.assessments.map(a => `• ${a.scale_name} - ${a.created_at?.[0]?a.created_at.slice(0,10):'---'}`).join('<br>')}</div>` : ''}
       </div>
     `, '<button class="btn btn-ghost btn-sm" onclick="closeModal()">关闭</button>');
   } catch (e) { toast('查看用户失败: ' + e.message, 'error'); }
@@ -181,8 +181,8 @@ function editUser(id, nickname, status, phone) {
   openModal('编辑用户', `
     <div style="display:flex;flex-direction:column;gap:12px;">
       <label>昵称 <input id="eu_nick" value="${escapeHtml(nickname)}" style="width:100%;padding:10px;border:1px solid #e0e0e0;border-radius:8px;"></label>
-      <label>手机�?<input id="eu_phone" value="${escapeHtml(phone)}" style="width:100%;padding:10px;border:1px solid #e0e0e0;border-radius:8px;"></label>
-      <label>状�?<select id="eu_status" style="width:100%;padding:10px;border:1px solid #e0e0e0;border-radius:8px;">
+      <label>手机号 <input id="eu_phone" value="${escapeHtml(phone)}" style="width:100%;padding:10px;border:1px solid #e0e0e0;border-radius:8px;"></label>
+      <label>状态 <select id="eu_status" style="width:100%;padding:10px;border:1px solid #e0e0e0;border-radius:8px;">
         <option value="active" ${status==='active'?'selected':''}>活跃</option>
         <option value="silent" ${status==='silent'?'selected':''}>静默</option>
         <option value="risk" ${status==='risk'?'selected':''}>风险关注</option>
@@ -198,11 +198,11 @@ async function saveUser(id) {
       phone: document.getElementById('eu_phone').value,
       status: document.getElementById('eu_status').value
     });
-    closeModal(); toast('用户已更�?); loadUsersData();
+    closeModal(); toast('用户已更新'); loadUsersData();
   } catch (e) { toast('保存失败: ' + e.message, 'error'); }
 }
 
-// 用户页筛选事件绑�?
+// 用户页筛选事件绑定
 setTimeout(() => {
   const userPage = document.getElementById('page-users');
   if (userPage) {
@@ -231,8 +231,8 @@ async function loadAssessmentsData() {
     }
     tbody.innerHTML = scales.map(s => `<tr>
       <td class="user-name">${s.name}</td>
-      <td><span class="emotion-tag">${catLabels[s.category]||s.category||'未分�?}</span></td>
-      <td>${s.question_count||0}�?/td>
+      <td><span class="emotion-tag">${catLabels[s.category]||s.category||'未分类'}</span></td>
+      <td>${s.question_count||0}题</td>
       <td style="font-weight:500">${s.completions||0}</td>
       <td style="font-weight:600">${s.avg_score?Number(s.avg_score).toFixed(1):'---'}</td>
       <td><span class="status-tag ${s.status==='published'?'active':'inactive'}"><span class="status-dot"></span>${s.status==='published'?'启用':'草稿'}</span></td>
@@ -256,7 +256,7 @@ function openScaleModal(scale=null) {
       </select></label>
       <label>描述 <textarea id="sc_desc" style="width:100%;padding:10px;border:1px solid #e0e0e0;border-radius:8px;min-height:80px;">${scale?escapeHtml(scale.description||''):''}</textarea></label>
       <label>预计时长(分钟) <input id="sc_min" type="number" value="${scale?scale.estimated_minutes||5:5}" style="width:100%;padding:10px;border:1px solid #e0e0e0;border-radius:8px;"></label>
-      <label>状�?<select id="sc_status" style="width:100%;padding:10px;border:1px solid #e0e0e0;border-radius:8px;">
+      <label>状态 <select id="sc_status" style="width:100%;padding:10px;border:1px solid #e0e0e0;border-radius:8px;">
         <option value="published" ${scale&&scale.status==='published'?'selected':''}>启用</option>
         <option value="draft" ${scale&&scale.status==='draft'?'selected':''}>草稿</option>
       </select></label>
@@ -269,7 +269,7 @@ async function saveScale(id) {
   try {
     if (id) { await apiFetch('/api/v1/admin/assessments/'+id, 'PUT', body); }
     else { await apiFetch('/api/v1/admin/assessments', 'POST', body); }
-    closeModal(); toast('量表已保�?); loadAssessmentsData();
+    closeModal(); toast('量表已保存'); loadAssessmentsData();
   } catch (e) { toast('保存失败: '+e.message, 'error'); }
 }
 
@@ -284,7 +284,7 @@ async function editScale(id) {
 
 async function deleteScale(id, name) {
   if (!confirm(`确定删除"${name}"及其所有题目吗？`)) return;
-  try { await apiFetch('/api/v1/admin/assessments/'+id, 'DELETE'); toast('量表已删�?); loadAssessmentsData(); }
+  try { await apiFetch('/api/v1/admin/assessments/'+id, 'DELETE'); toast('量表已删除'); loadAssessmentsData(); }
   catch (e) { toast('删除失败: '+e.message, 'error'); }
 }
 
@@ -302,7 +302,7 @@ async function loadAssessEditorData() {
     const scaleSelect = page.querySelector('#scaleSelect');
     if (!scaleSelect) {
       const toolbar = page.querySelector('.table-toolbar') || page.querySelector('.editor-sidebar') || page.firstElementChild;
-      const selHtml = `<div style="padding:16px 20px;border-bottom:1px solid var(--color-border);"><label style="font-size:13px;color:var(--color-text-tertiary);">选择量表�?/label>
+      const selHtml = `<div style="padding:16px 20px;border-bottom:1px solid var(--color-border);"><label style="font-size:13px;color:var(--color-text-tertiary);">选择量表：</label>
         <select id="scaleSelect" onchange="onScaleSelect()" style="padding:8px 12px;border:1px solid var(--color-border);border-radius:8px;font-size:14px;min-width:200px;">
         <option value="">--- 请选择 ---</option>
         ${scales.map(s => `<option value="${s.id}">${s.name} [${catLabels[s.category]||s.category}]</option>`).join('')}
@@ -355,30 +355,30 @@ function renderQuestionEditor(questions) {
         <b>Q${i+1}</b>
         <span style="font-size:12px;color:var(--color-text-tertiary);">${q.dimension||''}</span>
         <div style="display:flex;gap:4px;">
-          <button class="btn btn-ghost btn-sm" onclick="moveQuestion('${q.id}',${i-1})" ${i===0?'disabled':''}>�?/button>
-          <button class="btn btn-ghost btn-sm" onclick="moveQuestion('${q.id}',${i+1})" ${i===questions.length-1?'disabled':''}>�?/button>
-          <button class="btn btn-ghost btn-sm" style="color:var(--color-danger);" onclick="deleteQuestion('${q.id}')">�?/button>
+          <button class="btn btn-ghost btn-sm" onclick="moveQuestion('${q.id}',${i-1})" ${i===0?'disabled':''}>↑</button>
+          <button class="btn btn-ghost btn-sm" onclick="moveQuestion('${q.id}',${i+1})" ${i===questions.length-1?'disabled':''}>↓</button>
+          <button class="btn btn-ghost btn-sm" style="color:var(--color-danger);" onclick="deleteQuestion('${q.id}')">✕</button>
         </div>
       </div>
       <input value="${escapeHtml(q.question_text||'')}" style="width:100%;padding:8px;border:1px solid #e0e0e0;border-radius:6px;margin-bottom:8px;" onchange="updateQuestionText('${q.id}',this.value)">
       <div style="display:flex;gap:8px;flex-wrap:wrap;">${opts.map((o,j) => `
-        <span style="background:#f5f5f5;padding:4px 10px;border-radius:6px;font-size:12px;">${o.score||j+1}�? ${o.label||''}</span>
+        <span style="background:#f5f5f5;padding:4px 10px;border-radius:6px;font-size:12px;">${o.score||j+1}分: ${o.label||''}</span>
       `).join('')}</div>
-      <div style="font-size:11px;color:#999;margin-top:4px;">维度�?input style="width:100px;padding:4px;border:1px solid #e0e0e0;border-radius:4px;font-size:12px;" value="${escapeHtml(q.dimension||'')}" onchange="updateQuestionField('${q.id}','dimension',this.value)"> | 反向计分�?input type="checkbox" ${q.reverse_score?'checked':''} onchange="updateQuestionField('${q.id}','reverse_score',this.checked?1:0)"></div>
+      <div style="font-size:11px;color:#999;margin-top:4px;">维度：<input style="width:100px;padding:4px;border:1px solid #e0e0e0;border-radius:4px;font-size:12px;" value="${escapeHtml(q.dimension||'')}" onchange="updateQuestionField('${q.id}','dimension',this.value)"> | 反向计分：<input type="checkbox" ${q.reverse_score?'checked':''} onchange="updateQuestionField('${q.id}','reverse_score',this.checked?1:0)"></div>
     </div>`;
   });
-  html += `<button class="btn btn-outline" style="margin-top:8px;" onclick="addNewQuestion()">+ 添加新题�?/button></div>`;
+  html += `<button class="btn btn-outline" style="margin-top:8px;" onclick="addNewQuestion()">+ 添加新题目</button></div>`;
   mainArea.innerHTML = html;
 }
 
 async function addNewQuestion() {
   if (!editorScaleId) { toast('请先选择量表', 'error'); return; }
-  const defaultOpts = [{label:'没有或很少时�?,score:1},{label:'少部分时�?,score:2},{label:'相当多时�?,score:3},{label:'绝大部分或全部时�?,score:4}];
+  const defaultOpts = [{label:'没有或很少时间',score:1},{label:'少部分时间',score:2},{label:'相当多时间',score:3},{label:'绝大部分或全部时间',score:4}];
   try {
     await apiFetch('/api/v1/admin/assessments/'+editorScaleId+'/questions', 'POST', {
-      question_text: '新题目（点击编辑�?, options: defaultOpts, question_order: editorQuestions.length + 1
+      question_text: '新题目（点击编辑）', options: defaultOpts, question_order: editorQuestions.length + 1
     });
-    toast('题目已添�?); loadScaleQuestions(editorScaleId);
+    toast('题目已添加'); loadScaleQuestions(editorScaleId);
   } catch (e) { toast('添加失败: '+e.message, 'error'); }
 }
 
@@ -393,8 +393,8 @@ async function updateQuestionField(qId, field, value) {
 }
 
 async function deleteQuestion(qId) {
-  if (!confirm('删除此题�?)) return;
-  try { await apiFetch(`/api/v1/admin/assessments/${editorScaleId}/questions/${qId}`, 'DELETE'); toast('已删�?); loadScaleQuestions(editorScaleId); }
+  if (!confirm('删除此题？')) return;
+  try { await apiFetch(`/api/v1/admin/assessments/${editorScaleId}/questions/${qId}`, 'DELETE'); toast('已删除'); loadScaleQuestions(editorScaleId); }
   catch (e) { toast('删除失败: '+e.message, 'error'); }
 }
 
@@ -408,7 +408,7 @@ async function deleteCurrentScale() {
   const sel = document.getElementById('scaleSelect');
   const name = sel ? sel.options[sel.selectedIndex]?.text : '当前量表';
   if (!confirm(`确定删除"${name}"？`)) return;
-  try { await apiFetch('/api/v1/admin/assessments/'+editorScaleId, 'DELETE'); toast('量表已删�?); editorScaleId=null; editorQuestions=[]; loadAssessEditorData(); }
+  try { await apiFetch('/api/v1/admin/assessments/'+editorScaleId, 'DELETE'); toast('量表已删除'); editorScaleId=null; editorQuestions=[]; loadAssessEditorData(); }
   catch (e) { toast('删除失败: '+e.message, 'error'); }
 }
 
@@ -441,7 +441,7 @@ async function loadEntertainmentData() {
       <td><span style="font-size:12px;color:#999;">${t.category}</span></td>
       <td style="font-weight:500">${formatNum(t.view_count||0)}</td>
       <td style="font-weight:500">${formatNum(t.play_count||0)}</td>
-      <td><span class="status-tag ${t.status==='published'?'active':'inactive'}"><span class="status-dot"></span>${t.status==='published'?'已发�?:'草稿'}</span></td>
+      <td><span class="status-tag ${t.status==='published'?'active':'inactive'}"><span class="status-dot"></span>${t.status==='published'?'已发布':'草稿'}</span></td>
       <td><div class="action-btns">
         <button class="action-link" onclick="editEntTest('${t.id}')">编辑</button>
         <button class="action-link" style="color:var(--color-danger)" onclick="deleteEntTest('${t.id}','${t.title}')">删除</button>
@@ -450,7 +450,7 @@ async function loadEntertainmentData() {
     // 绑定新增按钮
     const addBtn = page.querySelector('.table-toolbar .btn-primary');
     if (addBtn) addBtn.onclick = () => openEntTestModal();
-    // 绑定筛�?
+    // 绑定筛选
     const filters = page.querySelectorAll('.table-filters select, .table-filters input');
     if (filters[0]) filters[0].onchange = e => { entFilter.category = e.target.value; loadEntertainmentData(); };
     if (filters[1]) filters[1].onchange = e => { entFilter.status = e.target.value; loadEntertainmentData(); };
@@ -461,13 +461,13 @@ function openEntTestModal(test=null) {
   openModal(test ? '编辑娱乐测试' : '新增娱乐测试', `
     <div style="display:flex;flex-direction:column;gap:12px;">
       <label>标题 <input id="et_title" value="${test?escapeHtml(test.title):''}" style="width:100%;padding:10px;border:1px solid #e0e0e0;border-radius:8px;"></label>
-      <label>分类代码 <input id="et_cat" value="${test?escapeHtml(test.category):''}" style="width:100%;padding:10px;border:1px solid #e0e0e0;border-radius:8px;" placeholder="�?face_reading, tarot, zodiac"></label>
-      <label>分类名称 <input id="et_catname" value="${test?escapeHtml(test.category_name):''}" style="width:100%;padding:10px;border:1px solid #e0e0e0;border-radius:8px;" placeholder="�?面相看相"></label>
+      <label>分类代码 <input id="et_cat" value="${test?escapeHtml(test.category):''}" style="width:100%;padding:10px;border:1px solid #e0e0e0;border-radius:8px;" placeholder="如 face_reading, tarot, zodiac"></label>
+      <label>分类名称 <input id="et_catname" value="${test?escapeHtml(test.category_name):''}" style="width:100%;padding:10px;border:1px solid #e0e0e0;border-radius:8px;" placeholder="如 面相看相"></label>
       <label>图标 <input id="et_icon" value="${test?test.icon||'🔮':''}" style="width:100%;padding:10px;border:1px solid #e0e0e0;border-radius:8px;"></label>
       <label>描述 <textarea id="et_desc" style="width:100%;padding:10px;border:1px solid #e0e0e0;border-radius:8px;min-height:60px;">${test?escapeHtml(test.description||''):''}</textarea></label>
       <label>排序 <input id="et_sort" type="number" value="${test?test.sort_order||0:0}" style="width:100%;padding:10px;border:1px solid #e0e0e0;border-radius:8px;"></label>
-      <label>状�?<select id="et_status" style="width:100%;padding:10px;border:1px solid #e0e0e0;border-radius:8px;">
-        <option value="published" ${test&&test.status==='published'?'selected':''}>已发�?/option>
+      <label>状态 <select id="et_status" style="width:100%;padding:10px;border:1px solid #e0e0e0;border-radius:8px;">
+        <option value="published" ${test&&test.status==='published'?'selected':''}>已发布</option>
         <option value="draft" ${test&&test.status==='draft'?'selected':''}>草稿</option>
       </select></label>
     </div>
@@ -479,7 +479,7 @@ async function saveEntTest(id) {
   try {
     if (id) { await apiFetch('/api/v1/admin/entertainment-tests/'+id, 'PUT', body); }
     else { await apiFetch('/api/v1/admin/entertainment-tests', 'POST', body); }
-    closeModal(); toast('娱乐测试已保�?); loadEntertainmentData();
+    closeModal(); toast('娱乐测试已保存'); loadEntertainmentData();
   } catch (e) { toast('保存失败: '+e.message, 'error'); }
 }
 
@@ -490,7 +490,7 @@ async function editEntTest(id) {
 
 async function deleteEntTest(id, title) {
   if (!confirm(`确定删除"${title}"？`)) return;
-  try { await apiFetch('/api/v1/admin/entertainment-tests/'+id, 'DELETE'); toast('已删�?); loadEntertainmentData(); }
+  try { await apiFetch('/api/v1/admin/entertainment-tests/'+id, 'DELETE'); toast('已删除'); loadEntertainmentData(); }
   catch (e) { toast('删除失败: '+e.message, 'error'); }
 }
 
@@ -504,9 +504,9 @@ async function loadEntEditorData() {
     const catSelect = page.querySelector('#entCatSelect');
     if (!catSelect && data.categories) {
       const toolbar = page.querySelector('.table-toolbar') || page.firstElementChild;
-      const selHtml = `<div style="padding:16px 20px;border-bottom:1px solid var(--color-border);"><label style="font-size:13px;color:var(--color-text-tertiary);">选择分类编辑�?/label>
+      const selHtml = `<div style="padding:16px 20px;border-bottom:1px solid var(--color-border);"><label style="font-size:13px;color:var(--color-text-tertiary);">选择分类编辑：</label>
         <select id="entCatSelect" onchange="onEntCatSelect()" style="padding:8px 12px;border:1px solid var(--color-border);border-radius:8px;font-size:14px;min-width:200px;">
-        <option value="">--- 按分类查�?---</option>
+        <option value="">--- 按分类查看 ---</option>
         ${data.categories.map(c => `<option value="${c.category}">${c.icon||''} ${c.category_name} (${c.count})</option>`).join('')}
         </select></div>`;
       toolbar.insertAdjacentHTML('beforebegin', selHtml);
@@ -532,7 +532,7 @@ async function onEntCatSelect() {
         </div>
       </div>`).join('') +
       `<button class="btn btn-primary btn-sm" style="margin-top:8px;align-self:flex-start;" onclick="openEntTestModal()">+ 新增测试</button></div>`;
-    // 同步更新左侧编辑器默认�?
+    // 同步更新左侧编辑器默认值
     if (list.length > 0) {
       const titleInput = page.querySelector('input[placeholder*="标题"]');
       if (titleInput) titleInput.value = list[0].title;
@@ -555,14 +555,14 @@ async function loadTreeholeData() {
         <div class="review-anonymous"><div class="anonymous-mask">👤</div>
           <div><strong>${(e.nickname||'匿名用户')}</strong><div class="review-meta">${e.created_at?e.created_at.slice(0,16):''}</div></div>
         </div>
-        <span class="review-tag" style="background:${e.review_status==='pending'?'var(--color-warning-bg)':e.review_status==='approved'?'var(--color-success-bg)':'#FFEBEE'};color:${e.review_status==='pending'?'#F57F17':e.review_status==='approved'?'#2E7D32':'#C62828'}">${e.review_status==='pending'?'待审�?:e.review_status==='approved'?'已通过':'已拒�?}</span>
+        <span class="review-tag" style="background:${e.review_status==='pending'?'var(--color-warning-bg)':e.review_status==='approved'?'var(--color-success-bg)':'#FFEBEE'};color:${e.review_status==='pending'?'#F57F17':e.review_status==='approved'?'#2E7D32':'#C62828'}">${e.review_status==='pending'?'待审核':e.review_status==='approved'?'已通过':'已拒绝'}</span>
       </div>
-      <div class="review-body"><b>心情�?/b>${e.mood||'---'} | ${e.mood_intensity?`强度�?{e.mood_intensity}/10`:'---'}<br>${(e.content||'').replace(/</g,'&lt;').replace(/\n/g,'<br>')}</div>
-      ${e.mood==='绝望'||e.content.includes('自伤')?'<div style="font-size:12px;color:#C62828;font-weight:600;">�?高风险内�?- 含自伤意�?绝望情绪</div>':''}
+      <div class="review-body"><b>心情：</b>${e.mood||'---'} | ${e.mood_intensity?`强度：${e.mood_intensity}/10`:'---'}<br>${(e.content||'').replace(/</g,'&lt;').replace(/\n/g,'<br>')}</div>
+      ${e.mood==='绝望'||e.content.includes('自伤')?'<div style="font-size:12px;color:#C62828;font-weight:600;">⚠ 高风险内容 - 含自伤意念/绝望情绪</div>':''}
       <div class="review-actions">
         ${e.review_status==='pending'?`
-          <button class="btn btn-primary btn-sm" onclick="approveTreehole('${e.id}')">�?通过</button>
-          <button class="btn btn-ghost btn-sm" style="color:var(--color-danger);" onclick="rejectTreehole('${e.id}')">�?拒绝</button>
+          <button class="btn btn-primary btn-sm" onclick="approveTreehole('${e.id}')">✓ 通过</button>
+          <button class="btn btn-ghost btn-sm" style="color:var(--color-danger);" onclick="rejectTreehole('${e.id}')">✕ 拒绝</button>
         `:''}
         <button class="btn btn-ghost btn-sm" style="color:var(--color-danger);" onclick="deleteTreehole('${e.id}')">删除</button>
       </div>
@@ -576,8 +576,8 @@ async function loadTreeholeData() {
 }
 
 async function approveTreehole(id) { try { await apiFetch('/api/v1/admin/treehole/'+id+'/approve','PUT'); toast('已通过'); loadTreeholeData(); } catch(e) { toast(e.message,'error'); } }
-async function rejectTreehole(id) { try { await apiFetch('/api/v1/admin/treehole/'+id+'/reject','PUT'); toast('已拒�?); loadTreeholeData(); } catch(e) { toast(e.message,'error'); } }
-async function deleteTreehole(id) { if (!confirm('确认删除�?)) return; try { await apiFetch('/api/v1/admin/treehole/'+id,'DELETE'); toast('已删�?); loadTreeholeData(); } catch(e) { toast(e.message,'error'); } }
+async function rejectTreehole(id) { try { await apiFetch('/api/v1/admin/treehole/'+id+'/reject','PUT'); toast('已拒绝'); loadTreeholeData(); } catch(e) { toast(e.message,'error'); } }
+async function deleteTreehole(id) { if (!confirm('确认删除？')) return; try { await apiFetch('/api/v1/admin/treehole/'+id,'DELETE'); toast('已删除'); loadTreeholeData(); } catch(e) { toast(e.message,'error'); } }
 function batchTreehole(action) { toast(`批量${action==='approve'?'通过':'拒绝'}暂需逐项操作`); }
 
 // ==================== 8. 危机预警 ====================
@@ -589,15 +589,15 @@ async function loadCrisisData() {
     const alertList = page.querySelector('.alert-list');
     if (!alertList) return;
     if (!users || users.length === 0) {
-      alertList.innerHTML = '<li class="alert-item" style="justify-content:center;padding:48px;"><div class="alert-content"><div class="alert-title" style="text-align:center;color:var(--color-text-tertiary);">🎉 当前无高危预警用�?/div></div></li>';
+      alertList.innerHTML = '<li class="alert-item" style="justify-content:center;padding:48px;"><div class="alert-content"><div class="alert-title" style="text-align:center;color:var(--color-text-tertiary);">🎉 当前无高危预警用户</div></div></li>';
       return;
     }
     alertList.innerHTML = users.map(u => `<li class="alert-item">
       <span class="alert-level high"></span>
       <div class="alert-content">
-        <div class="alert-title">【高危�?{u.nickname||'匿名用户'} �?压力指数: ${u.stress_level||'---'} | 情绪稳定�? ${u.emotional_stability||'---'}</div>
-        <div class="alert-desc">人格类型: ${u.personality_type||'未评�?} | 当前心情: ${u.current_mood||'---'} | 总测�? ${u.total_assessments||0}�?/div>
-        <div class="alert-meta"><span class="alert-time">${u.updated_at?u.updated_at.slice(0,16):'---'}</span><span class="alert-user">手机: ${u.phone||'�?}</span><span class="alert-status pending">待处�?/span></div>
+        <div class="alert-title">【高危】${u.nickname||'匿名用户'} — 压力指数: ${u.stress_level||'---'} | 情绪稳定性: ${u.emotional_stability||'---'}</div>
+        <div class="alert-desc">人格类型: ${u.personality_type||'未评估'} | 当前心情: ${u.current_mood||'---'} | 总测评: ${u.total_assessments||0}次</div>
+        <div class="alert-meta"><span class="alert-time">${u.updated_at?u.updated_at.slice(0,16):'---'}</span><span class="alert-user">手机: ${u.phone||'无'}</span><span class="alert-status pending">待处理</span></div>
       </div>
     </li>`).join('');
     const urgentNum = page.querySelector('.crisis-stat.urgent .crisis-stat-num');
@@ -619,7 +619,7 @@ async function loadLogsData() {
       <div class="log-action-col"><span class="log-type ${actionColors[l.action]||'update'}">${l.action||'操作'}</span> ${l.detail||l.target||''}</div>
     </div>`).join('');
     const pageInfo = document.querySelector('#page-logs .pagination-info');
-    if (pageInfo) pageInfo.textContent = `�?${result.total||logs.length} 条记录`;
+    if (pageInfo) pageInfo.textContent = `共 ${result.total||logs.length} 条记录`;
   } catch (e) { console.error('加载日志失败:', e); }
 }
 
@@ -630,7 +630,7 @@ async function loadAgentsData() {
     const page = document.getElementById('page-ai-agents');
     if (!page) return;
     const modelOptions = await apiFetch('/api/v1/admin/ai-models').catch(() => []);
-    // 找到agent卡片容器并更�?
+    // 找到agent卡片容器并更新
     const agentCards = page.querySelectorAll('.agent-card, [class*="agent"]');
     if (agentCards.length >= agents.length) {
       agents.forEach((a,i) => {
@@ -642,9 +642,9 @@ async function loadAgentsData() {
         // 添加模型选择
         const modelArea = card.querySelector('.ai-config-row, [class*="config"], [class*="settings"]');
         if (modelArea && !card.querySelector('.model-select')) {
-          const modelHtml = `<div class="model-select" style="margin-top:8px;display:flex;gap:8px;align-items:center;"><label style="font-size:12px;">AI模型�?/label>
+          const modelHtml = `<div class="model-select" style="margin-top:8px;display:flex;gap:8px;align-items:center;"><label style="font-size:12px;">AI模型：</label>
             <select onchange="updateAgentModel('${a.id}',this.value)" style="padding:6px 10px;border:1px solid #e0e0e0;border-radius:6px;font-size:13px;">
-            ${Array.isArray(modelOptions) ? modelOptions.map(m => `<option value="${m.model_name}" ${a.model_name===m.model_name?'selected':''}>${m.display_name} ${m.is_active?'':'(未启�?'}</option>`).join('') : ''}
+            ${Array.isArray(modelOptions) ? modelOptions.map(m => `<option value="${m.model_name}" ${a.model_name===m.model_name?'selected':''}>${m.display_name} ${m.is_active?'':'(未启用)'}</option>`).join('') : ''}
             </select></div>`;
           modelArea.insertAdjacentHTML('beforebegin', modelHtml);
         }
@@ -665,7 +665,7 @@ async function loadAgentsData() {
 }
 
 async function updateAgentModel(agentId, modelName) {
-  try { await apiFetch('/api/v1/admin/agents/'+agentId, 'PUT', { model_name: modelName }); toast('模型已切�?); }
+  try { await apiFetch('/api/v1/admin/agents/'+agentId, 'PUT', { model_name: modelName }); toast('模型已切换'); }
   catch (e) { toast('切换失败: '+e.message, 'error'); }
 }
 
@@ -682,7 +682,7 @@ async function saveAgent(id) {
     const nameInput = card.querySelector('input[type="text"]');
     if (nameInput) body.name = nameInput.value;
     await apiFetch('/api/v1/admin/agents/'+id, 'PUT', body);
-    toast('Agent配置已保�?);
+    toast('Agent配置已保存');
   } catch (e) { toast('保存失败: '+e.message, 'error'); }
 }
 
@@ -692,7 +692,7 @@ async function loadAIStatusData() {
     const data = await apiFetch('/api/v1/admin/ai-status');
     const page = document.getElementById('page-ai-analysis');
     if (!page || !data) return;
-    // 更新服务状�?
+    // 更新服务状态
     const statusRows = page.querySelectorAll('.card-body > div > div');
     if (data.services && statusRows.length) {
       data.services.forEach((svc,i) => {
@@ -718,7 +718,7 @@ async function loadAIStatusData() {
     // 刷新示例按钮
     const refreshBtns = page.querySelectorAll('button');
     refreshBtns.forEach(b => { if (b.textContent.includes('刷新示例')) b.onclick = () => generateReportPreview(); });
-  } catch (e) { console.error('加载AI状态失�?', e); }
+  } catch (e) { console.error('加载AI状态失败:', e); }
 }
 
 async function generateReportPreview() {
@@ -769,8 +769,8 @@ async function loadSmsSettings() {
       if (hasConfig) {
         badge.style.background = 'var(--color-success-bg)';
         badge.style.color = 'var(--color-success)';
-        badge.textContent = '已配�?;
-        desc.textContent = '腾讯云短信已启用，用户将收到真实短信验证�?;
+        badge.textContent = '已配置';
+        desc.textContent = '腾讯云短信已启用，用户将收到真实短信验证码';
       } else {
         badge.textContent = '模拟模式';
         desc.textContent = '配置后自动启用腾讯云真实验证码发送，未配置时使用模拟模式';
@@ -781,26 +781,26 @@ async function loadSmsSettings() {
 
 async function saveSmsSettings() {
   const smsKeys = ['sms_secret_id','sms_secret_key','sms_sdk_app_id','sms_sign_name','sms_template_id'];
-  const idMap = {
+  const idMap: Record<string, string> = {
     'sms_secret_id': 'setSmsSecretId',
     'sms_secret_key': 'setSmsSecretKey',
     'sms_sdk_app_id': 'setSmsSdkAppId',
     'sms_sign_name': 'setSmsSignName',
     'sms_template_id': 'setSmsTemplateId',
   };
-  const settings = {};
+  const settings: Record<string, string> = {};
   for (const key of smsKeys) {
-    const el = document.getElementById(idMap[key]);
+    const el = document.getElementById(idMap[key]) as HTMLInputElement;
     if (el) settings[key] = el.value.trim();
   }
   try {
     await apiFetch('/api/v1/admin/settings/batch', 'PUT', { settings });
-    toast('短信配置已保�?);
-    loadSmsSettings(); // 刷新状态显�?
+    toast('短信配置已保存');
+    loadSmsSettings(); // 刷新状态显示
   } catch (e) { toast('保存失败: ' + e.message, 'error'); }
 }
 
-// ========== 退出登�?==========
+// ========== 退出登录 ==========
 function adminLogout() {
   authToken = ''; currentUser = null; localStorage.removeItem('liaoran_admin_token');
   document.getElementById('loginOverlay').style.display = 'flex';
@@ -818,7 +818,7 @@ document.querySelectorAll('.config-slider').forEach(slider => {
     if (disp) {
       if (this.max === '100' && this.min === '0') disp.textContent = (val/100).toFixed(2);
       else if (this.max === '10') disp.textContent = val + '/10';
-      else if (this.max === '14') disp.textContent = '�? + val + '�?;
+      else if (this.max === '14') disp.textContent = '每' + val + '天';
       else disp.textContent = val;
     }
   });
@@ -844,14 +844,14 @@ setTimeout(() => {
   }
 }, 600);
 
-// 绑定娱乐编辑页面的保�?发布按钮
+// 绑定娱乐编辑页面的保存/发布按钮
 setTimeout(() => {
   const entEditorPage = document.getElementById('page-entertainment-editor');
   if (entEditorPage) {
     const btns = entEditorPage.querySelectorAll('.btn');
     btns.forEach(b => {
-      if (b.textContent.includes('保存草稿')) b.onclick = () => { const title = entEditorPage.querySelector('input').value; if(title) openEntTestModal({title,status:'draft',category:'',category_name:'',icon:'🔮',description:'',sort_order:0}); else toast('请输入标�?,'error'); };
-      if (b.textContent.includes('发布')) b.onclick = () => { const title = entEditorPage.querySelector('input').value; if(title) openEntTestModal({title,status:'published',category:'',category_name:'',icon:'🔮',description:'',sort_order:0}); else toast('请输入标�?,'error'); };
+      if (b.textContent.includes('保存草稿')) b.onclick = () => { const title = entEditorPage.querySelector('input').value; if(title) openEntTestModal({title,status:'draft',category:'',category_name:'',icon:'🔮',description:'',sort_order:0}); else toast('请输入标题','error'); };
+      if (b.textContent.includes('发布')) b.onclick = () => { const title = entEditorPage.querySelector('input').value; if(title) openEntTestModal({title,status:'published',category:'',category_name:'',icon:'🔮',description:'',sort_order:0}); else toast('请输入标题','error'); };
     });
   }
 }, 800);

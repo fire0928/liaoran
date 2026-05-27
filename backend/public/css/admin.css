@@ -58,7 +58,7 @@
       display:flex; height:100vh; overflow:hidden;
     }
 
-    /* ===== 侧边�?===== */
+    /* ===== 侧边栏 ===== */
     .sidebar {
       width: var(--sidebar-width);
       background: var(--color-sidebar-bg);
@@ -114,7 +114,7 @@
     .admin-name { color:rgba(255,255,255,0.85); font-size:13px; font-weight:500; }
     .admin-role { color:rgba(255,255,255,0.4); font-size:11px; }
 
-    /* ===== 主区�?===== */
+    /* ===== 主区域 ===== */
     .main-area {
       flex:1; margin-left: var(--sidebar-width);
       display:flex; flex-direction:column; height:100vh;
@@ -151,7 +151,7 @@
       background:var(--color-danger); border-radius:50%; border:1.5px solid var(--color-surface);
     }
 
-    /* ===== 内容�?===== */
+    /* ===== 内容区 ===== */
     .content { flex:1; padding:var(--space-2xl); overflow-y:auto; }
 
     /* 页面容器 */
@@ -159,7 +159,7 @@
     .page.active { display:block; }
     @keyframes fadeIn { from{opacity:0;transform:translateY(6px);} to{opacity:1;transform:translateY(0);} }
 
-    /* ===== 仪表�?===== */
+    /* ===== 仪表盘 ===== */
     .stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:var(--space-lg); margin-bottom:var(--space-2xl); }
     .stat-card {
       background:var(--color-surface); border:1px solid var(--color-border);
@@ -200,7 +200,7 @@
     .card-action:hover { opacity:0.7; }
     .card-body { padding:var(--space-xl); }
 
-    /* 简易图�?- 用CSS绘制 */
+    /* 简易图表 - 用CSS绘制 */
     .chart-bar-group { display:flex; align-items:flex-end; gap:var(--space-sm); height:180px; padding-top:var(--space-xl); }
     .chart-bar-wrap { flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; height:100%; justify-content:flex-end; }
     .chart-bar {
@@ -342,7 +342,7 @@
     .emotion-tag { font-size:11px; padding:3px 10px; border-radius:var(--radius-full); background:var(--color-surface-warm); color:var(--color-text-secondary); }
     .review-actions { display:flex; gap:var(--space-sm); justify-content:flex-end; }
 
-    /* ===== 危机预警�?===== */
+    /* ===== 危机预警页 ===== */
     .crisis-header-stats { display:flex; gap:var(--space-lg); margin-bottom:var(--space-2xl); }
     .crisis-stat {
       flex:1; border-radius:var(--radius-lg); padding:var(--space-lg) var(--space-xl);
@@ -409,7 +409,7 @@
     .log-type.delete { background:var(--color-danger-bg); color:var(--color-danger); }
     .log-type.alert { background:var(--color-crisis-bg); color:var(--color-crisis); }
 
-    /* ===== 测评内容编辑�?===== */
+    /* ===== 测评内容编辑器 ===== */
     .editor-layout { display:grid; grid-template-columns:380px 1fr; gap:var(--space-2xl); }
     .editor-sidebar { background:var(--color-surface); border:1px solid var(--color-border); border-radius:var(--radius-lg); padding:var(--space-lg); height:fit-content; position:sticky; top:calc(var(--header-height) + var(--space-xl)); }
     .editor-main { min-width:0; }
@@ -466,7 +466,7 @@
     .scoring-header h3 { font-size:16px; font-weight:700; color:var(--color-primary); }
     .scoring-body { padding:var(--space-lg); }
 
-    /* Likert 计分可视�?*/
+    /* Likert 计分可视化 */
     .likert-visual { margin-bottom:var(--space-lg); }
     .likert-title { font-size:14px; font-weight:600; color:var(--color-text-secondary); margin-bottom:var(--space-sm); }
     .likert-bar-row { display:flex; align-items:center; gap:6px; margin-bottom:10px; }
@@ -526,7 +526,7 @@
     .upload-zone-text { font-size:15px; color:var(--color-text-secondary); margin-bottom:4px; }
     .upload-zone-hint { font-size:12px; color:var(--color-text-tertiary); }
 
-    /* ===== 响应�?===== */
+    /* ===== 响应式 ===== */
     @media (max-width: 1200px) {
       .stats-row { grid-template-columns:repeat(2,1fr); }
       .dashboard-grid { grid-template-columns:1fr; }
