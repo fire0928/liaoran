@@ -38,16 +38,16 @@ dashboardRouter.get('/dashboard', (req: AuthRequest, res: Response) => {
   ).all();
 
   const dailyActive = db.prepare(`
-    SELECT date(created_at) as day, COUNT(DISTINCT user_id) as count
+    SELECT date(day) as day, COUNT(DISTINCT user_id) as count
     FROM (
-      SELECT user_id, created_at FROM chat_sessions
+      SELECT user_id, started_at as day FROM chat_sessions
       UNION ALL
-      SELECT user_id, created_at FROM assessment_records
+      SELECT user_id, created_at as day FROM assessment_records
       UNION ALL
-      SELECT user_id, created_at FROM treehole_entries
+      SELECT user_id, created_at as day FROM treehole_entries
     )
-    WHERE created_at >= date('now', '-7 days')
-    GROUP BY date(created_at)
+    WHERE day >= date('now', '-7 days')
+    GROUP BY date(day)
     ORDER BY day
   `).all();
 
