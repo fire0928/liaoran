@@ -501,6 +501,11 @@
     .ai-config-row { display:flex; align-items:center; gap:var(--space-md); margin-top:var(--space-md); padding:var(--space-md); background:var(--color-bg); border-radius:var(--radius-md); }
     .ai-config-row label { font-size:13px; color:var(--color-text-secondary); white-space:nowrap; }
     .ai-config-row select, .ai-config-row input { padding:6px 10px; border:1px solid var(--color-border); border-radius:8px; font-size:13px; outline:none; background:var(--color-surface); }
+    /* 广告位管理 */
+    .ad-platform-tabs { display:flex; gap:var(--space-xs); border-bottom:2px solid var(--color-border-light); padding-bottom:0; flex-wrap:wrap; }
+    .ad-platform-tabs button { border:none; padding:10px 20px; font-size:14px; cursor:pointer; background:transparent; color:var(--color-text-secondary); border-radius:var(--radius-sm) var(--radius-sm) 0 0; transition:all 0.2s; border-bottom:2px solid transparent; margin-bottom:-2px; }
+    .ad-platform-tabs button:hover { color:var(--color-text-primary); background:var(--color-surface-warm); }
+    .ad-platform-tabs button.active { color:var(--color-primary); font-weight:600; background:var(--color-primary-light); border-bottom-color:var(--color-primary); }
     .ai-preview-area {
       background:var(--color-surface); border:1px solid var(--color-border);
       border-radius:var(--radius-lg); padding:var(--space-xl); margin-top:var(--space-2xl);

@@ -58,6 +58,12 @@
       大模型管理
     </a>
 
+    <div class="sidebar-section-label">商业化</div>
+    <a class="nav-item" data-page="ad-placements" onclick="switchPage('ad-placements')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M16 12l-4-4-4 4"/><path d="M12 8v10"/></svg>
+      广告位管理
+    </a>
+
     <div class="sidebar-section-label">安全</div>
     <a class="nav-item" data-page="crisis" onclick="switchPage('crisis')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
@@ -660,7 +666,20 @@ button class="page-btn">1606</button>
             <div id="eeResults"></div>
             <button class="btn btn-outline" style="margin-top:8px;" onclick="addEntResult()">+ 添加结果项</button>
           </section>
-        </main>
+          <!-- ========== 页面10：广告位管理 ========== -->
+    <div class="page" id="page-ad-placements">
+      <div class="card" style="margin-bottom:var(--space-2xl);">
+        <div class="card-header">
+          <div class="card-title">广告位管理</div>
+          <div style="font-size:13px;color:var(--color-text-tertiary);">配置五端广告位：H5 / Web / 安卓 / 鸿蒙 / iOS，各端独立管理广告联盟信息</div>
+        </div>
+        <div class="card-body">
+          <div class="ad-platform-tabs" id="adPlatformTabs"></div>
+          <div id="adPlacementsContainer" style="margin-top:var(--space-lg);"></div>
+        </div>
+      </div>
+    </div>
+  </main>
       </div>
     </div>
 
@@ -725,7 +744,20 @@ button class="page-btn">1606</button>
             <div id="aeAiTemplates"></div>
             <button class="btn btn-outline" style="margin-top:8px;" onclick="addAiTemplate()">+ 添加分析模板</button>
           </section>
-        </main>
+          <!-- ========== 页面10：广告位管理 ========== -->
+    <div class="page" id="page-ad-placements">
+      <div class="card" style="margin-bottom:var(--space-2xl);">
+        <div class="card-header">
+          <div class="card-title">广告位管理</div>
+          <div style="font-size:13px;color:var(--color-text-tertiary);">配置五端广告位：H5 / Web / 安卓 / 鸿蒙 / iOS，各端独立管理广告联盟信息</div>
+        </div>
+        <div class="card-body">
+          <div class="ad-platform-tabs" id="adPlatformTabs"></div>
+          <div id="adPlacementsContainer" style="margin-top:var(--space-lg);"></div>
+        </div>
+      </div>
+    </div>
+  </main>
       </div>
     </div>
 
@@ -1416,6 +1448,19 @@ button class="page-btn">1606</button>
         </div>
         <div class="card-body" id="aiModelsContainer" style="padding:0;">
           <!-- JS 动态渲染模型卡片 -->
+        </div>
+      </div>
+    </div>
+    <!-- ========== 页面10：广告位管理 ========== -->
+    <div class="page" id="page-ad-placements">
+      <div class="card" style="margin-bottom:var(--space-2xl);">
+        <div class="card-header">
+          <div class="card-title">广告位管理</div>
+          <div style="font-size:13px;color:var(--color-text-tertiary);">配置五端广告位：H5 / Web / 安卓 / 鸿蒙 / iOS，各端独立管理广告联盟信息</div>
+        </div>
+        <div class="card-body">
+          <div class="ad-platform-tabs" id="adPlatformTabs"></div>
+          <div id="adPlacementsContainer" style="margin-top:var(--space-lg);"></div>
         </div>
       </div>
     </div>

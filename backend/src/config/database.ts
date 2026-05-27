@@ -374,6 +374,22 @@ export async function initDatabase(): Promise<void> {
       created_at TEXT DEFAULT (datetime('now')),
       updated_at TEXT DEFAULT (datetime('now'))
     );
+    CREATE TABLE IF NOT EXISTS ad_placements (
+      id TEXT PRIMARY KEY,
+      platform TEXT NOT NULL,
+      position_key TEXT NOT NULL,
+      position_name TEXT NOT NULL,
+      page_name TEXT NOT NULL,
+      ad_type TEXT DEFAULT 'banner',
+      ad_network TEXT DEFAULT '',
+      app_id TEXT DEFAULT '',
+      ad_unit_id TEXT DEFAULT '',
+      is_active INTEGER DEFAULT 0,
+      config_json TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      updated_at TEXT DEFAULT (datetime('now')),
+      UNIQUE(platform, position_key)
+    );
     CREATE TABLE IF NOT EXISTS admin_notifications (
       id TEXT PRIMARY KEY,
       type TEXT NOT NULL DEFAULT 'system',
@@ -1014,6 +1030,45 @@ async function seedDefaultData() {
       ).run(uuidv4(), m.model_name, m.display_name, m.api_type, m.endpoint, m.is_active, m.config_json);
     }
     console.log('✅ AI 模型配置数据已插入（7个模型）');
+    db.save();
+  }
+
+  // === 广告位配置数据 ===
+  const adPlacementCount = (database.prepare('SELECT COUNT(*) as cnt FROM ad_placements').get() as any)?.cnt || 0;
+  if (adPlacementCount === 0) {
+    const positions: { key: string; name: string; page: string; ad_type: string }[] = [
+      { key: 'pos_fun_top', name: '趣味探索上方', page: '发现页', ad_type: 'banner' },
+      { key: 'pos_recommend_top', name: '为你推荐上方', page: '发现页', ad_type: 'banner' },
+      { key: 'pos_assess_top', name: '测评页顶部', page: '测评页', ad_type: 'banner' },
+      { key: 'pos_assistant_bottom', name: '通用助手下方', page: 'AI助手页', ad_type: 'banner' },
+      { key: 'pos_treehole_bottom', name: '树洞页底部', page: '树洞页', ad_type: 'banner' },
+      { key: 'pos_mood_bottom', name: '近七天情绪管理下方', page: '我的页', ad_type: 'banner' },
+    ];
+
+    const platforms: { code: string; name: string }[] = [
+      { code: 'h5', name: 'H5版' },
+      { code: 'web', name: 'Web版' },
+      { code: 'android', name: '安卓版' },
+      { code: 'harmonyos', name: '鸿蒙版' },
+      { code: 'ios', name: 'iOS版' },
+    ];
+
+    for (const plat of platforms) {
+      for (const pos of positions) {
+        // 每个平台默认建议的广告联盟
+        let defaultNetwork = '';
+        if (plat.code === 'h5') defaultNetwork = '穿山甲H5';
+        else if (plat.code === 'web') defaultNetwork = '优量汇Web';
+        else if (plat.code === 'android') defaultNetwork = '穿山甲';
+        else if (plat.code === 'harmonyos') defaultNetwork = '华为广告';
+        else if (plat.code === 'ios') defaultNetwork = '穿山甲iOS';
+
+        database.prepare(
+          'INSERT INTO ad_placements (id, platform, position_key, position_name, page_name, ad_type, ad_network, app_id, ad_unit_id, is_active, config_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        ).run(uuidv4(), plat.code, pos.key, pos.name, pos.page, pos.ad_type, defaultNetwork, '', '', 0, JSON.stringify({ notes: '', platform_name: plat.name }));
+      }
+    }
+    console.log('✅ 广告位配置数据已插入（30条，5端×6位置）');
     db.save();
   }
 

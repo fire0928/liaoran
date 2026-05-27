@@ -620,6 +620,37 @@ dashboardRouter.post('/ai-models/:id/test', (req: AuthRequest, res: Response) =>
     });
 });
 
+// ==================== 广告位管理 ====================
+// 获取所有广告位（可按 platform 筛选）
+dashboardRouter.get('/ad-placements', (req: AuthRequest, res: Response) => {
+  const db = getDatabase();
+  const platform = req.query.platform as string;
+  let sql = 'SELECT * FROM ad_placements';
+  const params: string[] = [];
+  if (platform) { sql += ' WHERE platform = ?'; params.push(platform); }
+  sql += ' ORDER BY platform, page_name, position_name';
+  const list = db.prepare(sql).all(...params) as any[];
+  res.json({ code: 0, data: list.map((m: any) => ({ ...m, config_json: safeJsonParse(m.config_json) })) });
+});
+
+// 更新单个广告位
+dashboardRouter.put('/ad-placements/:id', (req: AuthRequest, res: Response) => {
+  const db = getDatabase();
+  const { ad_network, app_id, ad_unit_id, is_active, config_json } = req.body;
+  const fields: string[] = [];
+  const values: any[] = [];
+  if (ad_network !== undefined) { fields.push('ad_network = ?'); values.push(ad_network); }
+  if (app_id !== undefined) { fields.push('app_id = ?'); values.push(app_id); }
+  if (ad_unit_id !== undefined) { fields.push('ad_unit_id = ?'); values.push(ad_unit_id); }
+  if (is_active !== undefined) { fields.push('is_active = ?'); values.push(is_active ? 1 : 0); }
+  if (config_json !== undefined) { fields.push('config_json = ?'); values.push(typeof config_json === 'string' ? config_json : JSON.stringify(config_json)); }
+  if (fields.length === 0) { res.json({ code: 1, message: '无更新字段' }); return; }
+  fields.push("updated_at = datetime('now')");
+  values.push(req.params.id);
+  db.prepare(`UPDATE ad_placements SET ${fields.join(', ')} WHERE id = ?`).run(...values);
+  res.json({ code: 0, message: '广告位配置已更新' });
+});
+
 // ==================== AI 分析中心 ====================
 dashboardRouter.get('/ai-status', (_req: AuthRequest, res: Response) => {
   const db = getDatabase();

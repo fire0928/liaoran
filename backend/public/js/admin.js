@@ -79,7 +79,7 @@ const catTags = { emotion: 'emotion-tag', personality: 'personality-tag', career
 function switchPage(pageId) {
   document.querySelectorAll('.nav-item').forEach(item => item.classList.toggle('active', item.dataset.page === pageId));
   document.querySelectorAll('.page').forEach(page => page.classList.toggle('active', page.id === 'page-' + pageId));
-  const titles = { 'dashboard':'数据仪表盘','users':'用户管理','assessments':'测评管理','assess-editor':'测评内容编辑','entertainment':'娱乐内容管理','entertainment-editor':'娱乐内容编辑','ai-analysis':'AI 分析中心','treehole':'树洞审核','ai-agents':'AI Agent 配置','ai-models':'大模型管理','crisis':'危机预警','settings':'系统设置','logs':'操作日志' };
+  const titles = { 'dashboard':'数据仪表盘','users':'用户管理','assessments':'测评管理','assess-editor':'测评内容编辑','entertainment':'娱乐内容管理','entertainment-editor':'娱乐内容编辑','ai-analysis':'AI 分析中心','treehole':'树洞审核','ai-agents':'AI Agent 配置','ai-models':'大模型管理','ad-placements':'广告位管理','crisis':'危机预警','settings':'系统设置','logs':'操作日志' };
   document.getElementById('pageTitle').textContent = titles[pageId] || '数据仪表盘';
   document.getElementById('breadcrumbCurrent').textContent = titles[pageId] || '数据仪表盘';
   if (pageId === 'dashboard') loadDashboardData();
@@ -94,6 +94,7 @@ function switchPage(pageId) {
   if (pageId === 'ai-analysis') loadAIStatusData();
   if (pageId === 'ai-agents') loadAgentsData();
   if (pageId === 'ai-models') loadAIModelsData();
+  if (pageId === 'ad-placements') loadAdPlacementsData();
   if (pageId === 'settings') loadSmsSettings();
 }
 
@@ -999,6 +1000,150 @@ async function testAIModel(id) {
     testBtn.textContent = origText;
     testBtn.disabled = false;
   }
+}
+
+// ==================== 12. 广告位管理 ====================
+let adPlatformTab = 'h5'; // 当前选中的平台 tab
+let adPlacementsCache = {}; // 按平台缓存数据
+
+const AD_PLATFORMS = [
+  { code: 'h5', label: 'H5版', desc: '移动端 H5 页面（微信/浏览器）', networks: ['穿山甲H5','优量汇','快手联盟','Sigmob','百度联盟','自定义'] },
+  { code: 'web', label: 'Web版', desc: 'PC 端网页', networks: ['Google AdSense','优量汇Web','百度联盟','自定义'] },
+  { code: 'android', label: '安卓版', desc: 'Android APP', networks: ['穿山甲','优量汇','快手联盟','Sigmob','Mintegral','Vungle','自定义'] },
+  { code: 'harmonyos', label: '鸿蒙版', desc: 'HarmonyOS APP', networks: ['华为广告','穿山甲鸿蒙','优量汇','自定义'] },
+  { code: 'ios', label: 'iOS版', desc: 'iOS APP', networks: ['穿山甲iOS','AdMob','AppLovin','Chartboost','Unity Ads','自定义'] },
+];
+
+async function loadAdPlacementsData() {
+  adPlatformTab = adPlatformTab || 'h5';
+  renderAdPlatformTabs();
+
+  try {
+    const list = await apiFetch('/api/v1/admin/ad-placements');
+    // 按平台分组
+    adPlacementsCache = {};
+    list.forEach(m => {
+      if (!adPlacementsCache[m.platform]) adPlacementsCache[m.platform] = [];
+      adPlacementsCache[m.platform].push(m);
+    });
+    renderAdPlacementsForTab(adPlatformTab);
+  } catch (e) { console.error('加载广告位失败:', e); toast('加载失败', 'error'); }
+}
+
+function renderAdPlatformTabs() {
+  const tabsContainer = document.getElementById('adPlatformTabs');
+  if (!tabsContainer) return;
+  tabsContainer.innerHTML = '';
+
+  const tabWrapper = document.createElement('div');
+  tabWrapper.style.cssText = 'display:flex;gap:var(--space-xs);border-bottom:2px solid var(--color-border-light);padding-bottom:0;';
+
+  AD_PLATFORMS.forEach(plat => {
+    const tab = document.createElement('button');
+    tab.className = 'ad-platform-tab' + (adPlatformTab === plat.code ? ' active' : '');
+    tab.textContent = plat.label;
+    tab.onclick = () => { adPlatformTab = plat.code; renderAdPlatformTabs(); renderAdPlacementsForTab(plat.code); };
+    tabWrapper.appendChild(tab);
+  });
+
+  const descSpan = document.createElement('span');
+  const cur = AD_PLATFORMS.find(p => p.code === adPlatformTab);
+  descSpan.style.cssText = 'margin-left:auto;font-size:12px;color:var(--color-text-tertiary);align-self:center;';
+  descSpan.textContent = cur ? cur.desc : '';
+  tabWrapper.appendChild(descSpan);
+
+  tabsContainer.appendChild(tabWrapper);
+}
+
+function renderAdPlacementsForTab(platformCode) {
+  const list = adPlacementsCache[platformCode] || [];
+  const container = document.getElementById('adPlacementsContainer');
+  const platInfo = AD_PLATFORMS.find(p => p.code === platformCode) || { networks: ['自定义'] };
+  if (!container) return;
+
+  if (list.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--color-text-tertiary);">该平台暂无广告位数据</div>';
+    return;
+  }
+
+  container.innerHTML = list.map(m => {
+    const badge = m.is_active
+      ? '<span style="background:var(--color-success);color:#fff;font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;">已启用</span>'
+      : '<span style="background:var(--color-surface-warm);color:var(--color-text-tertiary);font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;">未启用</span>';
+
+    const typeBadge = m.ad_type === 'banner' ? '横幅' : m.ad_type;
+    const networkOptions = platInfo.networks.map(n => `<option value="${n}" ${m.ad_network === n ? 'selected' : ''}>${n}</option>`).join('');
+
+    return `
+    <div class="settings-section" style="border-bottom:1px solid var(--color-border);padding:var(--space-lg) var(--space-xl);margin-bottom:0;" data-ad-id="${m.id}">
+      <div style="display:flex;align-items:center;gap:var(--space-md);margin-bottom:var(--space-md);">
+        <div style="font-size:15px;font-weight:700;color:var(--color-text-primary);">${escapeHtml(m.position_name)}</div>
+        <div style="font-size:12px;color:var(--color-text-tertiary);background:var(--color-surface-warm);padding:2px 8px;border-radius:6px;">${escapeHtml(m.page_name)}</div>
+        <div style="font-size:11px;color:var(--color-text-tertiary);">${typeBadge}</div>
+        <div style="font-size:11px;color:var(--color-text-tertiary);font-family:monospace;">${m.position_key}</div>
+        ${badge}
+      </div>
+
+      <div class="settings-row" style="padding:6px 0;">
+        <div class="settings-info">
+          <h4>广告联盟</h4>
+          <p>选择该位置接入的广告平台</p>
+        </div>
+        <select class="config-input ad-net" style="max-width:220px;">${networkOptions}</select>
+      </div>
+
+      <div class="settings-row" style="padding:6px 0;">
+        <div class="settings-info">
+          <h4>App ID</h4>
+          <p>广告联盟分配的应用ID</p>
+        </div>
+        <input type="text" class="config-input ad-app-id" value="${escapeHtml(m.app_id || '')}" placeholder="应用ID" style="max-width:280px;">
+      </div>
+
+      <div class="settings-row" style="padding:6px 0;">
+        <div class="settings-info">
+          <h4>广告位ID</h4>
+          <p>广告联盟分配的广告位代码ID</p>
+        </div>
+        <input type="text" class="config-input ad-unit-id" value="${escapeHtml(m.ad_unit_id || '')}" placeholder="广告位代码ID" style="max-width:280px;">
+      </div>
+
+      <div class="settings-row" style="padding:6px 0;">
+        <div class="settings-info">
+          <h4>启用状态</h4>
+          <p>启用后该端该位置将展示广告</p>
+        </div>
+        <label class="toggle-switch ${m.is_active ? 'on' : ''} ad-toggle" onclick="this.classList.toggle('on')" style="cursor:pointer;"></label>
+      </div>
+
+      <div style="margin-top:var(--space-md);">
+        <button class="btn btn-primary btn-sm" onclick="saveAdPlacement('${m.id}')">保存配置</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function saveAdPlacement(id) {
+  const section = document.querySelector('[data-ad-id="'+id+'"]');
+  if (!section) return;
+
+  const netSelect = section.querySelector('.ad-net');
+  const appIdInput = section.querySelector('.ad-app-id');
+  const unitIdInput = section.querySelector('.ad-unit-id');
+  const toggleEl = section.querySelector('.ad-toggle');
+
+  const body = {
+    ad_network: netSelect ? netSelect.value : '',
+    app_id: appIdInput ? appIdInput.value : '',
+    ad_unit_id: unitIdInput ? unitIdInput.value : '',
+    is_active: toggleEl ? toggleEl.classList.contains('on') : false
+  };
+
+  try {
+    await apiFetch('/api/v1/admin/ad-placements/' + id, 'PUT', body);
+    toast('广告位配置已保存', 'success');
+    await loadAdPlacementsData();
+  } catch (e) { toast('保存失败: ' + e.message, 'error'); }
 }
 
 // ==================== 12. AI 分析中心 ====================
