@@ -57,7 +57,7 @@ authRouter.post('/login', (req: Request, res: Response) => {
     user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId) as any;
   }
 
-  const token = generateToken(user.id, 'user');
+  const token = generateToken(user.id, user.role || 'user');
   const refreshToken = uuidv4();
 
   // 存储refresh token
@@ -89,6 +89,60 @@ authRouter.post('/login', (req: Request, res: Response) => {
         avatar: user.avatar,
         gender: user.gender,
         memberLevel: user.member_level,
+      }
+    }
+  });
+});
+
+// 管理员密码登录（手机号+密码）
+authRouter.post('/login/admin', (req: Request, res: Response) => {
+  const { phone, password } = req.body;
+  const db = getDatabase();
+
+  if (!phone || !password) {
+    res.status(400).json({ code: 400, message: '请输入手机号和密码' });
+    return;
+  }
+
+  const user = db.prepare('SELECT * FROM users WHERE phone = ?').get(phone) as any;
+  if (!user) {
+    res.status(401).json({ code: 401, message: '账号或密码错误' });
+    return;
+  }
+
+  if (!user.password_hash) {
+    res.status(401).json({ code: 401, message: '该账号未设置密码' });
+    return;
+  }
+
+  if (user.role !== 'admin') {
+    res.status(403).json({ code: 403, message: '非管理员账号' });
+    return;
+  }
+
+  const valid = bcrypt.compareSync(password, user.password_hash);
+  if (!valid) {
+    res.status(401).json({ code: 401, message: '账号或密码错误' });
+    return;
+  }
+
+  const token = generateToken(user.id, 'admin');
+
+  // 记录操作日志
+  db.prepare(
+    'INSERT INTO operation_logs (id, operator, action, target, detail) VALUES (?, ?, ?, ?, ?)'
+  ).run(uuidv4(), user.nickname || '管理员', 'admin_login', '管理员登录', `管理员 ${user.nickname} 登录后台`);
+
+  res.json({
+    code: 0,
+    data: {
+      token,
+      user: {
+        id: user.id,
+        phone: user.phone,
+        nickname: user.nickname,
+        avatar: user.avatar,
+        role: user.role,
       }
     }
   });

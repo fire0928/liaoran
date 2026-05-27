@@ -1844,9 +1844,9 @@ button class="page-btn">1606</button>
       display:flex;align-items:center;justify-content:center;color:#fff;font-size:28px;font-weight:700;margin:0 auto 20px;">了</div>
     <div style="font-size:24px;font-weight:700;margin-bottom:4px;">了然管理台</div>
     <div style="font-size:13px;color:var(--color-text-tertiary);margin-bottom:32px;">后台管理系统登录</div>
-    <input id="adminPhone" type="text" placeholder="手机号" style="width:100%;padding:14px 16px;
+    <input id="adminPhone" type="text" placeholder="管理员手机号" style="width:100%;padding:14px 16px;
       border:1px solid var(--color-border);border-radius:12px;font-size:15px;margin-bottom:12px;outline:none;box-sizing:border-box;">
-    <input id="adminCode" type="text" placeholder="验证码（测试环境: 123456）" style="width:100%;padding:14px 16px;
+    <input id="adminPassword" type="password" placeholder="管理员密码" style="width:100%;padding:14px 16px;
       border:1px solid var(--color-border);border-radius:12px;font-size:15px;margin-bottom:24px;outline:none;box-sizing:border-box;">
     <button onclick="doAdminLogin()" style="width:100%;padding:14px;border-radius:12px;background:var(--color-primary);
       color:#fff;font-size:16px;font-weight:600;border:none;cursor:pointer;">登 录</button>
@@ -1856,7 +1856,7 @@ button class="page-btn">1606</button>
 
 <script>
 // ========== API 配置 ==========
-const API_BASE = 'http://localhost:3000';
+const API_BASE = window.location.port === '3001' ? window.location.origin : '';
 let authToken = localStorage.getItem('liaoran_admin_token') || '';
 let currentUser = null;
 
@@ -1883,14 +1883,15 @@ async function apiFetch(path, method = 'GET', body = null) {
 // ========== 登录 ==========
 async function doAdminLogin() {
   const phone = document.getElementById('adminPhone').value.trim();
-  const code = document.getElementById('adminCode').value.trim() || '123456';
+  const password = document.getElementById('adminPassword').value.trim();
   const errEl = document.getElementById('loginError');
   if (!phone) { errEl.textContent = '请输入手机号'; errEl.style.display = 'block'; return; }
+  if (!password) { errEl.textContent = '请输入密码'; errEl.style.display = 'block'; return; }
   try {
-    const res = await fetch(API_BASE + '/api/v1/auth/login', {
+    const res = await fetch(API_BASE + '/api/v1/auth/login/admin', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone, code })
+      body: JSON.stringify({ phone, password })
     });
     const data = await res.json();
     if (data.code === 0 && data.data) {
@@ -1926,7 +1927,7 @@ async function doAdminLogin() {
     });
   }
   // 回车登录
-  document.getElementById('adminCode').addEventListener('keydown', e => {
+  document.getElementById('adminPassword').addEventListener('keydown', e => {
     if (e.key === 'Enter') doAdminLogin();
   });
   document.getElementById('adminPhone').addEventListener('keydown', e => {

@@ -144,6 +144,7 @@ export async function initDatabase(): Promise<void> {
       occupation TEXT,
       education TEXT,
       password_hash TEXT,
+      role TEXT DEFAULT 'user',
       status TEXT DEFAULT 'active',
       member_level INTEGER DEFAULT 0,
       member_expired_at TEXT,
