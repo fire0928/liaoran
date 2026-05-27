@@ -3,24 +3,36 @@ import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 import { getDatabase } from '../config/database';
 import { generateToken, authenticate, AuthRequest } from '../middleware/auth';
+import { sendSmsCode } from '../services/sms';
+import { setVerificationCode, verifyCode, generateCode } from '../services/verification';
 
 export const authRouter = Router();
 
-// 发送验证码（模拟）
-authRouter.post('/send-code', (req: Request, res: Response) => {
+// 发送验证码
+authRouter.post('/send-code', async (req: Request, res: Response) => {
   const { phone } = req.body;
   if (!phone) {
     res.status(400).json({ code: 400, message: '请输入手机号' });
     return;
   }
-  // 模拟发送验证码
-  console.log(`📱 验证码发送到 ${phone}: 123456`);
-  res.json({ code: 0, message: '验证码已发送（测试环境: 123456）' });
+  // 校验手机号格式
+  if (!/^1[3-9]\d{9}$/.test(phone)) {
+    res.status(400).json({ code: 400, message: '请输入正确的手机号' });
+    return;
+  }
+  const code = generateCode();
+  setVerificationCode(phone, code);
+  const result = await sendSmsCode(phone, code);
+  if (!result.success) {
+    res.status(500).json({ code: 500, message: result.message || '验证码发送失败' });
+    return;
+  }
+  res.json({ code: 0, message: result.message });
 });
 
-// 手机号登录/注册
+// 手机号登录/注册（支持验证码或密码）
 authRouter.post('/login', (req: Request, res: Response) => {
-  const { phone, code } = req.body;
+  const { phone, code, password } = req.body;
   const db = getDatabase();
 
   if (!phone) {
@@ -28,52 +40,100 @@ authRouter.post('/login', (req: Request, res: Response) => {
     return;
   }
 
-  // 测试环境验证码
+  const db2 = db as any;
+
+  // 密码登录分支
+  if (password) {
+    const user = db2.prepare('SELECT * FROM users WHERE phone = ?').get(phone) as any;
+    if (!user) {
+      res.status(401).json({ code: 401, message: '账号或密码错误' });
+      return;
+    }
+    if (!user.password_hash) {
+      res.status(401).json({ code: 401, message: '该账号未设置密码，请使用验证码登录' });
+      return;
+    }
+    const valid = bcrypt.compareSync(password, user.password_hash);
+    if (!valid) {
+      res.status(401).json({ code: 401, message: '账号或密码错误' });
+      return;
+    }
+
+    const token = generateToken(user.id, user.role || 'user');
+    const refreshToken = uuidv4();
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 30);
+    db2.prepare(
+      'INSERT INTO refresh_tokens (id, user_id, token, expires_at) VALUES (?, ?, ?, ?)'
+    ).run(uuidv4(), user.id, refreshToken, expiresAt.toISOString());
+
+    db2.prepare(
+      'UPDATE user_portraits SET last_interaction_at = datetime(\'now\') WHERE user_id = ?'
+    ).run(user.id);
+
+    db2.prepare(
+      'INSERT INTO operation_logs (id, operator, action, target, detail) VALUES (?, ?, ?, ?, ?)'
+    ).run(uuidv4(), user.nickname, 'login', '用户登录', `用户 ${user.nickname} 密码登录系统`);
+
+    res.json({
+      code: 0,
+      data: {
+        token,
+        refreshToken,
+        user: {
+          id: user.id,
+          phone: user.phone,
+          nickname: user.nickname,
+          avatar: user.avatar,
+          gender: user.gender,
+          memberLevel: user.member_level,
+        }
+      }
+    });
+    return;
+  }
+
+  // 验证码登录分支
   if (code && code !== '123456') {
     res.status(400).json({ code: 400, message: '验证码错误' });
     return;
   }
 
   // 查找或创建用户
-  let user = db.prepare('SELECT * FROM users WHERE phone = ?').get(phone) as any;
+  let user = db2.prepare('SELECT * FROM users WHERE phone = ?').get(phone) as any;
 
   if (!user) {
     const userId = uuidv4();
     const nickname = `了然用户${phone.slice(-4)}`;
-    db.prepare(
+    db2.prepare(
       'INSERT INTO users (id, phone, nickname, member_level) VALUES (?, ?, ?, ?)'
     ).run(userId, phone, nickname, 0);
 
-    // 创建积分账户
-    db.prepare(
+    db2.prepare(
       'INSERT INTO point_accounts (id, user_id, balance) VALUES (?, ?, ?)'
-    ).run(uuidv4(), userId, 500); // 新用户赠送500积分
+    ).run(uuidv4(), userId, 500);
 
-    // 创建画像
-    db.prepare(
+    db2.prepare(
       'INSERT INTO user_portraits (id, user_id, risk_level) VALUES (?, ?, ?)'
     ).run(uuidv4(), userId, 'low');
 
-    user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId) as any;
+    user = db2.prepare('SELECT * FROM users WHERE id = ?').get(userId) as any;
   }
 
   const token = generateToken(user.id, user.role || 'user');
   const refreshToken = uuidv4();
 
-  // 存储refresh token
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + 30);
-  db.prepare(
+  db2.prepare(
     'INSERT INTO refresh_tokens (id, user_id, token, expires_at) VALUES (?, ?, ?, ?)'
   ).run(uuidv4(), user.id, refreshToken, expiresAt.toISOString());
 
-  // 更新最后交互时间
-  db.prepare(
+  db2.prepare(
     'UPDATE user_portraits SET last_interaction_at = datetime(\'now\') WHERE user_id = ?'
   ).run(user.id);
 
-  // 创建操作日志
-  db.prepare(
+  db2.prepare(
     'INSERT INTO operation_logs (id, operator, action, target, detail) VALUES (?, ?, ?, ?, ?)'
   ).run(uuidv4(), user.nickname, 'login', '用户登录', `用户 ${user.nickname} 登录系统`);
 
@@ -191,35 +251,60 @@ authRouter.post('/login/email', (req: Request, res: Response) => {
   });
 });
 
-// 注册（邮箱+密码）
+// 注册（手机号 + 验证码 + 密码，或邮箱 + 密码）
 authRouter.post('/register', (req: Request, res: Response) => {
-  const { email, password, nickname } = req.body;
+  const { phone, email, password, nickname, code } = req.body;
   const db = getDatabase();
 
-  if (!email || !password) {
-    res.status(400).json({ code: 400, message: '请输入邮箱和密码' });
+  if ((!phone && !email) || !password) {
+    res.status(400).json({ code: 400, message: '请输入手机号/邮箱和密码' });
     return;
   }
 
-  const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
-  if (existing) {
-    res.status(409).json({ code: 409, message: '该邮箱已被注册' });
-    return;
+  const db2 = db as any;
+
+  if (phone) {
+    // 手机号注册需要验证码
+    if (!code) {
+      res.status(400).json({ code: 400, message: '请输入短信验证码' });
+      return;
+    }
+    if (!verifyCode(phone, code)) {
+      res.status(400).json({ code: 400, message: '验证码错误或已过期' });
+      return;
+    }
+    const existing = db2.prepare('SELECT id FROM users WHERE phone = ?').get(phone);
+    if (existing) {
+      res.status(409).json({ code: 409, message: '该手机号已被注册' });
+      return;
+    }
+  } else {
+    const existing = db2.prepare('SELECT id FROM users WHERE email = ?').get(email);
+    if (existing) {
+      res.status(409).json({ code: 409, message: '该邮箱已被注册' });
+      return;
+    }
   }
 
   const userId = uuidv4();
   const hashedPassword = bcrypt.hashSync(password, 10);
-  const displayName = nickname || `用户${email.split('@')[0]}`;
+  const displayName = nickname || (phone ? `了然用户${phone.slice(-4)}` : `用户${email.split('@')[0]}`);
 
-  db.prepare(
-    'INSERT INTO users (id, email, nickname, password_hash, member_level) VALUES (?, ?, ?, ?, ?)'
-  ).run(userId, email, displayName, hashedPassword, 0);
+  if (phone) {
+    db2.prepare(
+      'INSERT INTO users (id, phone, nickname, password_hash, member_level) VALUES (?, ?, ?, ?, ?)'
+    ).run(userId, phone, displayName, hashedPassword, 0);
+  } else {
+    db2.prepare(
+      'INSERT INTO users (id, email, nickname, password_hash, member_level) VALUES (?, ?, ?, ?, ?)'
+    ).run(userId, email, displayName, hashedPassword, 0);
+  }
 
-  db.prepare(
+  db2.prepare(
     'INSERT INTO point_accounts (id, user_id, balance) VALUES (?, ?, ?)'
   ).run(uuidv4(), userId, 500);
 
-  db.prepare(
+  db2.prepare(
     'INSERT INTO user_portraits (id, user_id, risk_level) VALUES (?, ?, ?)'
   ).run(uuidv4(), userId, 'low');
 
@@ -229,7 +314,7 @@ authRouter.post('/register', (req: Request, res: Response) => {
     code: 0,
     data: {
       token,
-      user: { id: userId, email, nickname: displayName, memberLevel: 0 }
+      user: { id: userId, phone, email, nickname: displayName, memberLevel: 0 }
     }
   });
 });
@@ -262,6 +347,69 @@ authRouter.get('/me', authenticate, (req: AuthRequest, res: Response) => {
       checkedInToday: checkins?.cnt > 0,
     }
   });
+});
+
+// ==================== 忘记密码 ====================
+
+// 发送忘记密码验证码
+authRouter.post('/forgot-password', async (req: Request, res: Response) => {
+  const { phone } = req.body;
+  if (!phone) {
+    res.status(400).json({ code: 400, message: '请输入手机号' });
+    return;
+  }
+  if (!/^1[3-9]\d{9}$/.test(phone)) {
+    res.status(400).json({ code: 400, message: '请输入正确的手机号' });
+    return;
+  }
+
+  const db = getDatabase();
+  const user = db.prepare('SELECT id FROM users WHERE phone = ?').get(phone);
+  if (!user) {
+    res.status(404).json({ code: 404, message: '该手机号未注册' });
+    return;
+  }
+
+  const code = generateCode();
+  setVerificationCode(phone, code);
+  const result = await sendSmsCode(phone, code);
+  if (!result.success) {
+    res.status(500).json({ code: 500, message: result.message || '验证码发送失败' });
+    return;
+  }
+  res.json({ code: 0, message: result.message });
+});
+
+// 重置密码（验证码 + 新密码）
+authRouter.post('/reset-password', (req: Request, res: Response) => {
+  const { phone, code, password } = req.body;
+
+  if (!phone || !code || !password) {
+    res.status(400).json({ code: 400, message: '请填写手机号、验证码和新密码' });
+    return;
+  }
+
+  if (password.length < 6) {
+    res.status(400).json({ code: 400, message: '密码至少6位' });
+    return;
+  }
+
+  if (!verifyCode(phone, code)) {
+    res.status(400).json({ code: 400, message: '验证码错误或已过期' });
+    return;
+  }
+
+  const db = getDatabase();
+  const user = db.prepare('SELECT id FROM users WHERE phone = ?').get(phone) as any;
+  if (!user) {
+    res.status(404).json({ code: 404, message: '该手机号未注册' });
+    return;
+  }
+
+  const hashedPassword = bcrypt.hashSync(password, 10);
+  db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(hashedPassword, user.id);
+
+  res.json({ code: 0, message: '密码已重置，请使用新密码登录' });
 });
 
 // 登出
