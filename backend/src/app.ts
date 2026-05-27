@@ -22,11 +22,23 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // 中间件
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
+}));
 app.use(cors());
 app.use(morgan('dev'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// 静态文件服务（Web App + 管理后台 + 原型）
+const publicDir = path.join(__dirname, '..', 'public');
+app.use(express.static(publicDir));
+
+// 管理后台页面（/admin 不带 .html 也能访问）
+app.get('/admin', (_req, res) => {
+  res.sendFile(path.join(publicDir, 'admin.html'));
+});
 
 // API路由
 app.use('/api/v1/auth', authRouter);
@@ -50,9 +62,11 @@ app.use(errorHandler);
 async function start() {
   await initDatabase();
   app.listen(PORT, () => {
-    console.log(`\n🧠 了然心理API服务已启动`);
-    console.log(`📍 地址: http://localhost:${PORT}`);
-    console.log(`📋 健康检查: http://localhost:${PORT}/api/health\n`);
+  console.log(`\n🧠 了然心理API服务已启动`);
+  console.log(`📍 地址: http://localhost:${PORT}`);
+  console.log(`🌐 Web App: http://localhost:${PORT}/`);
+  console.log(`⚙️  管理后台: http://localhost:${PORT}/admin`);
+  console.log(`📋 健康检查: http://localhost:${PORT}/api/health\n`);
   });
 }
 
