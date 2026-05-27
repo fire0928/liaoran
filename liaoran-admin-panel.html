@@ -2824,7 +2824,7 @@ async function generateReportPreview() {
 async function saveAllSettings() {
   const page = document.getElementById('page-settings');
   if (!page) return;
-  const inputs = Array.from(page.querySelectorAll('input[type="text"]')).filter((inp: any) => !inp.id.startsWith('setSms'));
+  const inputs = Array.from(page.querySelectorAll('input[type="text"]')).filter((inp) => !inp.id.startsWith('setSms'));
   const toggles = page.querySelectorAll('.toggle-switch');
   const settings = {};
   const settingKeys = ['platform_name','daily_limit','onboarding','anon_default','crisis_push','daily_report','treehole_alert','feedback','sensitive_filter','crisis_auto','data_encrypt'];
@@ -2847,7 +2847,7 @@ async function loadSmsSettings() {
       'sms_template_id': 'setSmsTemplateId',
     };
     let hasConfig = false;
-    configs.forEach((c: any) => {
+    configs.forEach((c) => {
       if (smsKeys.includes(c.config_key)) {
         const el = document.getElementById(idMap[c.config_key]);
         if (el && c.config_value) { el.value = c.config_value; hasConfig = true; }
@@ -2887,7 +2887,7 @@ async function saveSmsSettings() {
     await apiFetch('/api/v1/admin/settings/batch', 'PUT', { settings });
     toast('短信配置已保存');
     loadSmsSettings(); // 刷新状态显示
-  } catch (e: any) { toast('保存失败: ' + e.message, 'error'); }
+  } catch (e) { toast('保存失败: ' + e.message, 'error'); }
 }
 
 // ========== 退出登录 ==========
