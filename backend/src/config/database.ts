@@ -1000,13 +1000,13 @@ async function seedDefaultData() {
   const modelConfigCount = (database.prepare('SELECT COUNT(*) as cnt FROM ai_model_configs').get() as any)?.cnt || 0;
   if (modelConfigCount === 0) {
     const models = [
-      { model_name: 'gpt-4o', display_name: 'GPT-4o', api_type: 'openai', is_active: 1, config_json: JSON.stringify({ max_tokens: 4096, supports_stream: true }) },
-      { model_name: 'gpt-4-turbo', display_name: 'GPT-4 Turbo', api_type: 'openai', is_active: 0, config_json: JSON.stringify({ max_tokens: 4096, supports_stream: true }) },
-      { model_name: 'gpt-3.5-turbo', display_name: 'GPT-3.5 Turbo', api_type: 'openai', is_active: 0, config_json: JSON.stringify({ max_tokens: 2048, supports_stream: true }) },
-      { model_name: 'claude-3-opus', display_name: 'Claude 3 Opus', api_type: 'anthropic', is_active: 0, config_json: JSON.stringify({ max_tokens: 4096, supports_stream: true }) },
-      { model_name: 'claude-3-sonnet', display_name: 'Claude 3 Sonnet', api_type: 'anthropic', is_active: 0, config_json: JSON.stringify({ max_tokens: 4096, supports_stream: true }) },
-      { model_name: 'deepseek-chat', display_name: 'DeepSeek Chat', api_type: 'openai', is_active: 0, config_json: JSON.stringify({ max_tokens: 4096, supports_stream: true, base_url: 'https://api.deepseek.com' }) },
-      { model_name: 'qwen-max', display_name: '通义千问 Max', api_type: 'openai', is_active: 0, config_json: JSON.stringify({ max_tokens: 2048, supports_stream: true, base_url: 'https://dashscope.aliyuncs.com/compatible-mode/v1' }) },
+      { model_name: 'gpt-4o', display_name: 'GPT-4o', api_type: 'openai', is_active: 1, config_json: JSON.stringify({ max_tokens: 4096, supports_stream: true, vendor: 'OpenAI' }) },
+      { model_name: 'abab6.5s-chat', display_name: 'MiniMax abab6.5s', api_type: 'openai', is_active: 0, config_json: JSON.stringify({ max_tokens: 4096, supports_stream: true, vendor: 'MiniMax', base_url: 'https://api.minimax.chat/v1' }) },
+      { model_name: 'doubao-pro-32k', display_name: '豆包大模型', api_type: 'openai', is_active: 0, config_json: JSON.stringify({ max_tokens: 4096, supports_stream: true, vendor: '火山引擎', base_url: 'https://ark.cn-beijing.volces.com/api/v3' }) },
+      { model_name: 'doubao-seedimage', display_name: '豆包图像生成', api_type: 'image', is_active: 0, config_json: JSON.stringify({ supports_stream: false, vendor: '火山引擎', base_url: 'https://ark.cn-beijing.volces.com/api/v3', description: '支持文生图、图生图，可通过豆包画图' }) },
+      { model_name: 'ernie-4.0-turbo', display_name: '文心一言 ERNIE-4.0', api_type: 'openai', is_active: 0, config_json: JSON.stringify({ max_tokens: 4096, supports_stream: true, vendor: '百度', base_url: 'https://qianfan.baidubce.com/v2' }) },
+      { model_name: 'qwen-max', display_name: '通义千问 Max', api_type: 'openai', is_active: 0, config_json: JSON.stringify({ max_tokens: 4096, supports_stream: true, vendor: '阿里云', base_url: 'https://dashscope.aliyuncs.com/compatible-mode/v1' }) },
+      { model_name: 'glm-4-plus', display_name: '智谱 GLM-4 Plus', api_type: 'openai', is_active: 0, config_json: JSON.stringify({ max_tokens: 4096, supports_stream: true, vendor: '智谱AI', base_url: 'https://open.bigmodel.cn/api/paas/v4' }) },
     ];
     for (const m of models) {
       database.prepare(

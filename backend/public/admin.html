@@ -22,7 +22,6 @@
     <a class="nav-item" data-page="users" onclick="switchPage('users')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       用户管理
-      <span class="nav-badge">128</span>
     </a>
 
     <div class="sidebar-section-label">内容</div>
@@ -37,7 +36,6 @@
     <a class="nav-item" data-page="assess-editor" onclick="switchPage('assess-editor')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
       测评内容编辑
-      <span class="nav-badge" style="background:var(--color-primary);">New</span>
     </a>
     <a class="nav-item" data-page="entertainment-editor" onclick="switchPage('entertainment-editor')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
@@ -50,18 +48,20 @@
     <a class="nav-item" data-page="treehole" onclick="switchPage('treehole')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c4-4 8-7.5 8-12a8 8 0 1 0-16 0c0 4.5 4 8 8 12z"/><circle cx="12" cy="10" r="3"/></svg>
       树洞审核
-      <span class="nav-badge">5</span>
     </a>
     <a class="nav-item" data-page="ai-agents" onclick="switchPage('ai-agents')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 0 1 4 4v2a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z"/><path d="M16 14a4 4 0 1 1-8 0"/><path d="M12 18v4"/><path d="M8 22h8"/></svg>
       AI Agent 配置
+    </a>
+    <a class="nav-item" data-page="ai-models" onclick="switchPage('ai-models')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+      大模型管理
     </a>
 
     <div class="sidebar-section-label">安全</div>
     <a class="nav-item" data-page="crisis" onclick="switchPage('crisis')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       危机预警
-      <span class="nav-badge">3</span>
     </a>
 
     <div class="sidebar-section-label">系统</div>
@@ -1407,6 +1407,18 @@ button class="page-btn">1606</button>
       </div>
     </div>
 
+    <!-- ========== 页面9：大模型管理 ========== -->
+    <div class="page" id="page-ai-models">
+      <div class="card" style="margin-bottom:var(--space-2xl);">
+        <div class="card-header">
+          <div class="card-title">大模型 API 配置</div>
+          <div style="font-size:13px;color:var(--color-text-tertiary);">配置各模型的 API 密钥与接入地址，填写后即可在 AI Agent 中调用</div>
+        </div>
+        <div class="card-body" id="aiModelsContainer" style="padding:0;">
+          <!-- JS 动态渲染模型卡片 -->
+        </div>
+      </div>
+    </div>
   </main>
 </div>
 

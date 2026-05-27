@@ -79,7 +79,7 @@ const catTags = { emotion: 'emotion-tag', personality: 'personality-tag', career
 function switchPage(pageId) {
   document.querySelectorAll('.nav-item').forEach(item => item.classList.toggle('active', item.dataset.page === pageId));
   document.querySelectorAll('.page').forEach(page => page.classList.toggle('active', page.id === 'page-' + pageId));
-  const titles = { 'dashboard':'数据仪表盘','users':'用户管理','assessments':'测评管理','assess-editor':'测评内容编辑','entertainment':'娱乐内容管理','entertainment-editor':'娱乐内容编辑','ai-analysis':'AI 分析中心','treehole':'树洞审核','ai-agents':'AI Agent 配置','crisis':'危机预警','settings':'系统设置','logs':'操作日志' };
+  const titles = { 'dashboard':'数据仪表盘','users':'用户管理','assessments':'测评管理','assess-editor':'测评内容编辑','entertainment':'娱乐内容管理','entertainment-editor':'娱乐内容编辑','ai-analysis':'AI 分析中心','treehole':'树洞审核','ai-agents':'AI Agent 配置','ai-models':'大模型管理','crisis':'危机预警','settings':'系统设置','logs':'操作日志' };
   document.getElementById('pageTitle').textContent = titles[pageId] || '数据仪表盘';
   document.getElementById('breadcrumbCurrent').textContent = titles[pageId] || '数据仪表盘';
   if (pageId === 'dashboard') loadDashboardData();
@@ -93,6 +93,7 @@ function switchPage(pageId) {
   if (pageId === 'logs') loadLogsData();
   if (pageId === 'ai-analysis') loadAIStatusData();
   if (pageId === 'ai-agents') loadAgentsData();
+  if (pageId === 'ai-models') loadAIModelsData();
   if (pageId === 'settings') loadSmsSettings();
 }
 
@@ -908,7 +909,74 @@ async function saveAgent(id) {
   } catch (e) { toast('保存失败: '+e.message, 'error'); }
 }
 
-// ==================== 11. AI 分析中心 ====================
+// ==================== 11. 大模型管理 ====================
+async function loadAIModelsData() {
+  try {
+    const res = await apiFetch('/api/v1/admin/ai-models');
+    const list = Array.isArray(res) ? res : (res.data || []);
+    const container = document.getElementById('aiModelsContainer');
+    if (!container) return;
+    container.innerHTML = list.map(m => {
+      const badge = m.is_active
+        ? '<span style="background:var(--color-success);color:#fff;font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;">已启用</span>'
+        : '<span style="background:var(--color-surface-warm);color:var(--color-text-tertiary);font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;">未启用</span>';
+      return `
+      <div class="settings-section" style="border-bottom:1px solid var(--color-border);padding:var(--space-xl);margin-bottom:0;" data-model-id="${m.id}">
+        <div style="display:flex;align-items:center;gap:var(--space-md);margin-bottom:var(--space-md);">
+          <div style="font-size:18px;font-weight:700;color:var(--color-text-primary);">${escapeHtml(m.display_name)}</div>
+          <div style="font-size:12px;color:var(--color-text-tertiary);background:var(--color-surface-warm);padding:2px 8px;border-radius:6px;">${escapeHtml(m.api_type)}</div>
+          ${badge}
+        </div>
+        <div class="settings-row" style="padding:8px 0;">
+          <div class="settings-info">
+            <h4>API 端点地址</h4>
+            <p>该模型 API 的基础 URL，留空使用默认地址</p>
+          </div>
+          <input type="text" class="config-input mm-endpoint" value="${escapeHtml(m.endpoint || '')}" placeholder="https://api.openai.com/v1" style="max-width:420px;">
+        </div>
+        <div class="settings-row" style="padding:8px 0;">
+          <div class="settings-info">
+            <h4>API 密钥</h4>
+            <p>填写后可直接调用该模型，密钥将加密存储</p>
+          </div>
+          <input type="password" class="config-input mm-key" value="${escapeHtml(m.api_key || '')}" placeholder="sk-..." style="max-width:420px;">
+        </div>
+        <div class="settings-row" style="padding:8px 0;">
+          <div class="settings-info">
+            <h4>启用状态</h4>
+            <p>启用后 AI Agent 可选择该模型</p>
+          </div>
+          <label class="toggle-switch ${m.is_active ? 'on' : ''}" onclick="this.classList.toggle('on')" style="cursor:pointer;"></label>
+        </div>
+        <div style="margin-top:var(--space-md);display:flex;gap:var(--space-sm);">
+          <button class="btn btn-primary btn-sm" onclick="saveAIModel('${m.id}')">保存配置</button>
+          <button class="btn btn-ghost btn-sm" onclick="testAIModel('${m.id}')">测试连通</button>
+        </div>
+      </div>`;
+    }).join('');
+  } catch (e) { console.error('加载模型配置失败:', e); toast('加载失败', 'error'); }
+}
+
+async function saveAIModel(id) {
+  const section = document.querySelector('[data-model-id="'+id+'"]');
+  if (!section) return;
+  const body = {
+    endpoint: section.querySelector('.mm-endpoint').value,
+    api_key: section.querySelector('.mm-key').value,
+    is_active: section.querySelector('.toggle-switch').classList.contains('on')
+  };
+  try {
+    await apiFetch('/api/v1/admin/ai-models/' + id, 'PUT', body);
+    toast('模型配置已保存');
+    loadAIModelsData();
+  } catch (e) { toast('保存失败: ' + e.message, 'error'); }
+}
+
+async function testAIModel(id) {
+  toast('连通性测试功能开发中，请保存后在使用端验证', 'info');
+}
+
+// ==================== 12. AI 分析中心 ====================
 async function loadAIStatusData() {
   try {
     const data = await apiFetch('/api/v1/admin/ai-status');
