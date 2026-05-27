@@ -49,7 +49,7 @@ class SqlJsWrapper {
     this.db.exec(_sql);
   }
 
-  prepare(sql: string) {
+  prepare(sql: string): any {
     const self = this;
     return {
       _sql: sql,

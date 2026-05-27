@@ -48,6 +48,6 @@ export function requireAdmin(req: AuthRequest, res: Response, next: NextFunction
 
 export function generateToken(userId: string, role: string = 'user'): string {
   return jwt.sign({ userId, role }, JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN || '7d'
+    expiresIn: (process.env.JWT_EXPIRES_IN || '7d') as any
   });
 }
