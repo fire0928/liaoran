@@ -316,12 +316,12 @@ dashboardRouter.get('/entertainment-tests', (req: AuthRequest, res: Response) =>
 
 dashboardRouter.post('/entertainment-tests', (req: AuthRequest, res: Response) => {
   const db = getDatabase();
-  const { title, category, category_name, icon, description, test_type, results_json, status, sort_order } = req.body;
+  const { title, category, category_name, icon, description, test_type, results_json, status, sort_order, content, tags, cover_image } = req.body;
   if (!title || !category) { res.status(400).json({ code: 400, message: '标题和分类不能为空' }); return; }
   const id = uuidv4();
   db.prepare(
-    'INSERT INTO entertainment_tests (id, title, category, category_name, icon, description, test_type, results_json, status, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-  ).run(id, title, category, category_name || category, icon || '🔮', description || '', test_type || 'quiz', JSON.stringify(results_json || {}), status || 'published', sort_order || 0);
+    'INSERT INTO entertainment_tests (id, title, category, category_name, icon, description, test_type, results_json, status, sort_order, content, tags, cover_image) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+  ).run(id, title, category, category_name || category, icon || '🔮', description || '', test_type || 'quiz', JSON.stringify(results_json || {}), status || 'published', sort_order || 0, content || '', tags || '', cover_image || '');
   res.json({ code: 0, data: { id, title } });
 });
 
@@ -334,10 +334,10 @@ dashboardRouter.get('/entertainment-tests/:id', (req: AuthRequest, res: Response
 
 dashboardRouter.put('/entertainment-tests/:id', (req: AuthRequest, res: Response) => {
   const db = getDatabase();
-  const { title, category, category_name, icon, description, test_type, results_json, status, sort_order } = req.body;
+  const { title, category, category_name, icon, description, test_type, results_json, status, sort_order, content, tags, cover_image } = req.body;
   const fields: string[] = [];
   const values: any[] = [];
-  const map: Record<string, any> = { title, category, category_name, icon, description, test_type, status };
+  const map: Record<string, any> = { title, category, category_name, icon, description, test_type, status, content, tags, cover_image };
   for (const [k, v] of Object.entries(map)) { if (v !== undefined) { fields.push(`${k} = ?`); values.push(v); } }
   if (results_json !== undefined) { fields.push('results_json = ?'); values.push(JSON.stringify(results_json)); }
   if (sort_order !== undefined) { fields.push('sort_order = ?'); values.push(sort_order); }

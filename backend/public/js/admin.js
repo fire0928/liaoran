@@ -571,7 +571,7 @@ async function loadEntertainmentData() {
       </div></td>
     </tr>`).join('');
     // 绑定新增按钮
-    const addBtn = page.querySelector('.table-toolbar .btn-primary');
+    const addBtn = page.querySelector('.card-header .btn-primary');
     if (addBtn) addBtn.onclick = () => openEntTestModal();
     // 绑定筛选
     const filters = page.querySelectorAll('.table-filters select, .table-filters input');
@@ -607,8 +607,8 @@ async function saveEntTest(id) {
 }
 
 async function editEntTest(id) {
-  try { const t = await apiFetch('/api/v1/admin/entertainment-tests/'+id); openEntTestModal(t); }
-  catch (e) { toast('加载失败', 'error'); }
+  entEditorId = id;
+  switchPage('entertainment-editor');
 }
 
 async function deleteEntTest(id, title) {
@@ -618,49 +618,148 @@ async function deleteEntTest(id, title) {
 }
 
 // ==================== 6. 娱乐内容编辑 ====================
+let entEditorId = null;
+let entEditorData = null;
+
 async function loadEntEditorData() {
   const page = document.getElementById('page-entertainment-editor');
   if (!page) return;
   try {
     const data = await apiFetch('/api/v1/admin/entertainment-tests?limit=200');
-    // 在下拉里加载分类
-    const catSelect = page.querySelector('#entCatSelect');
-    if (!catSelect && data.categories) {
-      const toolbar = page.querySelector('.table-toolbar') || page.firstElementChild;
-      const selHtml = `<div style="padding:16px 20px;border-bottom:1px solid var(--color-border);"><label style="font-size:13px;color:var(--color-text-tertiary);">选择分类编辑：</label>
-        <select id="entCatSelect" onchange="onEntCatSelect()" style="padding:8px 12px;border:1px solid var(--color-border);border-radius:8px;font-size:14px;min-width:200px;">
-        <option value="">--- 按分类查看 ---</option>
-        ${data.categories.map(c => `<option value="${c.category}">${c.icon||''} ${c.category_name} (${c.count})</option>`).join('')}
-        </select></div>`;
-      toolbar.insertAdjacentHTML('beforebegin', selHtml);
+    const list = data.list || data;
+    // 在下拉里加载已有的娱乐内容列表
+    const sidebar = page.querySelector('.editor-sidebar');
+    const existing = document.getElementById('entContentSelect');
+    if (existing) existing.remove();
+    const selHtml = `<div class="editor-field" id="entContentSelectWrap">
+      <label class="editor-label">选择要编辑的内容</label>
+      <select id="entContentSelect" onchange="onEntContentSelect()" class="editor-select">
+        <option value="">--- 请选择 ---</option>
+        ${list.map(t => `<option value="${t.id}">${escapeHtml(t.title)} [${escapeHtml(t.category_name||'')}]</option>`).join('')}
+      </select></div>`;
+    sidebar.insertAdjacentHTML('afterbegin', selHtml);
+    if (entEditorId) {
+      const sel = document.getElementById('entContentSelect');
+      if (sel) { sel.value = entEditorId; loadEntContentDetail(entEditorId); }
     }
   } catch (e) { console.error(e); }
 }
 
-async function onEntCatSelect() {
-  const cat = document.getElementById('entCatSelect').value;
-  if (!cat) return;
-  const page = document.getElementById('page-entertainment-editor');
+function onEntContentSelect() {
+  const id = document.getElementById('entContentSelect').value;
+  if (id) { entEditorId = id; loadEntContentDetail(id); }
+  else { entEditorId = null; clearEntEditorForm(); }
+}
+
+async function loadEntContentDetail(id) {
   try {
-    const data = await apiFetch('/api/v1/admin/entertainment-tests?category='+cat);
-    const list = data.list || data;
-    const main = page.querySelector('.editor-main') || page.querySelector('.card-body');
-    if (!main) return;
-    main.innerHTML = '<div style="display:flex;flex-direction:column;gap:8px;padding:16px;">' +
-      list.map(t => `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px;border:1px solid #e0e0e0;border-radius:8px;">
-        <span>${t.icon||''} <b>${t.title}</b> <small style="color:#999;">${t.category_name}</small></span>
-        <div style="display:flex;gap:4px;">
-          <button class="btn btn-ghost btn-sm" onclick="editEntTest('${t.id}')">编辑</button>
-          <button class="btn btn-ghost btn-sm" style="color:var(--color-danger)" onclick="deleteEntTest('${t.id}','${t.title}')">删除</button>
-        </div>
-      </div>`).join('') +
-      `<button class="btn btn-primary btn-sm" style="margin-top:8px;align-self:flex-start;" onclick="openEntTestModal()">+ 新增测试</button></div>`;
-    // 同步更新左侧编辑器默认值
-    if (list.length > 0) {
-      const titleInput = page.querySelector('input[placeholder*="标题"]');
-      if (titleInput) titleInput.value = list[0].title;
+    const item = await apiFetch('/api/v1/admin/entertainment-tests/' + id);
+    entEditorData = item;
+    // 填充左侧表单
+    document.getElementById('eeTitle').value = item.title || '';
+    document.getElementById('eeCategory').value = item.category || '';
+    document.getElementById('eeCatName').value = item.category_name || '';
+    document.getElementById('eeIcon').value = item.icon || '';
+    document.getElementById('eeType').value = item.test_type || 'quiz';
+    document.getElementById('eeSort').value = item.sort_order ?? 0;
+    document.getElementById('eeStatus').value = item.status || 'published';
+    document.getElementById('eeTags').value = item.tags || '';
+    document.getElementById('eeCover').value = item.cover_image || '';
+    document.getElementById('eeDesc').value = item.description || '';
+    document.getElementById('eeContent').value = item.content || '';
+    // 渲染结果项
+    renderEntResults(item.results_json);
+  } catch (e) { console.error('加载娱乐内容详情失败:', e); toast('加载失败', 'error'); }
+}
+
+function clearEntEditorForm() {
+  ['eeTitle','eeCategory','eeCatName','eeIcon','eeType','eeSort','eeStatus','eeTags','eeCover','eeDesc','eeContent'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      if (id === 'eeSort') el.value = '0';
+      else if (id === 'eeType') el.value = 'quiz';
+      else if (id === 'eeStatus') el.value = 'published';
+      else el.value = '';
     }
-  } catch (e) { console.error(e); }
+  });
+  document.getElementById('eeResults').innerHTML = '';
+}
+
+function renderEntResults(resultsJson) {
+  const container = document.getElementById('eeResults');
+  if (!container) return;
+  let list = [];
+  try { list = typeof resultsJson === 'string' ? JSON.parse(resultsJson || '[]') : (resultsJson || []); } catch (e) {}
+  if (!Array.isArray(list)) list = [];
+  if (list.length === 0) { container.innerHTML = ''; return; }
+  container.innerHTML = list.map((r, i) => `
+    <div class="ent-result-row" style="margin-bottom:12px;padding:12px;background:var(--color-surface-warm);border-radius:8px;">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+        <input type="text" class="er-type" value="${escapeHtml(r.type||'')}" placeholder="结果类型（如 A/B/C 或 分数值）" style="flex:1;padding:6px;border:1px solid var(--color-border);border-radius:6px;font-size:13px;">
+        <input type="text" class="er-label" value="${escapeHtml(r.label||'')}" placeholder="结果标签" style="flex:2;padding:6px;border:1px solid var(--color-border);border-radius:6px;font-size:13px;">
+        <button class="btn btn-ghost btn-sm" style="color:var(--color-danger);padding:4px 8px;" onclick="this.closest('.ent-result-row').remove()">✕</button>
+      </div>
+      <textarea class="er-desc" placeholder="结果描述文案" style="width:100%;padding:8px;border:1px solid var(--color-border);border-radius:6px;font-size:13px;min-height:60px;resize:vertical;">${escapeHtml(r.description||'')}</textarea>
+    </div>
+  `).join('');
+}
+
+function addEntResult() {
+  const container = document.getElementById('eeResults');
+  if (!container) return;
+  const div = document.createElement('div');
+  div.className = 'ent-result-row';
+  div.style.cssText = 'margin-bottom:12px;padding:12px;background:var(--color-surface-warm);border-radius:8px;';
+  div.innerHTML = `<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+    <input type="text" class="er-type" placeholder="结果类型（如 A/B/C 或 分数值）" style="flex:1;padding:6px;border:1px solid var(--color-border);border-radius:6px;font-size:13px;">
+    <input type="text" class="er-label" placeholder="结果标签" style="flex:2;padding:6px;border:1px solid var(--color-border);border-radius:6px;font-size:13px;">
+    <button class="btn btn-ghost btn-sm" style="color:var(--color-danger);padding:4px 8px;" onclick="this.closest('.ent-result-row').remove()">✕</button>
+  </div>
+  <textarea class="er-desc" placeholder="结果描述文案" style="width:100%;padding:8px;border:1px solid var(--color-border);border-radius:6px;font-size:13px;min-height:60px;resize:vertical;"></textarea>`;
+  container.appendChild(div);
+  div.querySelector('input').focus();
+}
+
+function getEntResultsFromDOM() {
+  const rows = document.querySelectorAll('#eeResults .ent-result-row');
+  return Array.from(rows).map(row => ({
+    type: row.querySelector('.er-type').value,
+    label: row.querySelector('.er-label').value,
+    description: row.querySelector('.er-desc').value
+  })).filter(r => r.type || r.label);
+}
+
+async function saveEntContent() {
+  if (!entEditorId) { toast('请先在上方的下拉列表中选择一个内容', 'error'); return; }
+  const body = {
+    title: document.getElementById('eeTitle').value,
+    category: document.getElementById('eeCategory').value,
+    category_name: document.getElementById('eeCatName').value,
+    icon: document.getElementById('eeIcon').value,
+    test_type: document.getElementById('eeType').value,
+    sort_order: parseInt(document.getElementById('eeSort').value) || 0,
+    status: document.getElementById('eeStatus').value,
+    tags: document.getElementById('eeTags').value,
+    cover_image: document.getElementById('eeCover').value,
+    description: document.getElementById('eeDesc').value,
+    content: document.getElementById('eeContent').value,
+    results_json: getEntResultsFromDOM()
+  };
+  try {
+    await apiFetch('/api/v1/admin/entertainment-tests/' + entEditorId, 'PUT', body);
+    toast('娱乐内容已保存');
+  } catch (e) { toast('保存失败: ' + e.message, 'error'); }
+}
+
+async function deleteEntContent() {
+  if (!entEditorId) return;
+  const name = document.getElementById('eeTitle')?.value || '当前内容';
+  if (!confirm(`确定删除"${name}"？`)) return;
+  try {
+    await apiFetch('/api/v1/admin/entertainment-tests/' + entEditorId, 'DELETE');
+    toast('已删除'); entEditorId = null; entEditorData = null;
+    clearEntEditorForm(); loadEntEditorData();
+  } catch (e) { toast('删除失败: ' + e.message, 'error'); }
 }
 
 // ==================== 7. 树洞审核 ====================
@@ -1031,15 +1130,3 @@ setTimeout(() => {
     loadSmsSettings();
   }
 }, 600);
-
-// 绑定娱乐编辑页面的保存/发布按钮
-setTimeout(() => {
-  const entEditorPage = document.getElementById('page-entertainment-editor');
-  if (entEditorPage) {
-    const btns = entEditorPage.querySelectorAll('.btn');
-    btns.forEach(b => {
-      if (b.textContent.includes('保存草稿')) b.onclick = () => { const title = entEditorPage.querySelector('input').value; if(title) openEntTestModal({title,status:'draft',category:'',category_name:'',icon:'🔮',description:'',sort_order:0}); else toast('请输入标题','error'); };
-      if (b.textContent.includes('发布')) b.onclick = () => { const title = entEditorPage.querySelector('input').value; if(title) openEntTestModal({title,status:'published',category:'',category_name:'',icon:'🔮',description:'',sort_order:0}); else toast('请输入标题','error'); };
-    });
-  }
-}, 800);

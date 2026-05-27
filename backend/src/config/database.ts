@@ -389,6 +389,9 @@ export async function initDatabase(): Promise<void> {
     try { db.exec('ALTER TABLE assessment_scales ADD COLUMN scoring_method TEXT DEFAULT \'likert4\''); } catch (e) {}
     try { db.exec('ALTER TABLE assessment_scales ADD COLUMN score_ranges TEXT'); } catch (e) {}
     try { db.exec('ALTER TABLE assessment_scales ADD COLUMN ai_templates TEXT'); } catch (e) {}
+    try { db.exec('ALTER TABLE entertainment_tests ADD COLUMN content TEXT'); } catch (e) {}
+    try { db.exec('ALTER TABLE entertainment_tests ADD COLUMN tags TEXT'); } catch (e) {}
+    try { db.exec('ALTER TABLE entertainment_tests ADD COLUMN cover_image TEXT'); } catch (e) {}
   try { db.exec('ALTER TABLE assessment_questions ADD COLUMN option_labels TEXT'); } catch (e) {}
   try { db.exec('ALTER TABLE ai_agents ADD COLUMN avatar_emoji TEXT DEFAULT \'🤖\''); } catch (e) {}
   try { db.exec('ALTER TABLE ai_agents ADD COLUMN model_name TEXT DEFAULT \'gpt-4o\''); } catch (e) {}
