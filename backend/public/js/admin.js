@@ -214,9 +214,13 @@ setTimeout(() => {
 }, 500);
 
 // ==================== 3. 测评管理 ====================
+let assessFilter = { search: '' };
+
 async function loadAssessmentsData() {
   try {
-    const result = await apiFetch('/api/v1/admin/assessments');
+    const params = new URLSearchParams();
+    if (assessFilter.search) params.set('search', assessFilter.search);
+    const result = await apiFetch('/api/v1/admin/assessments' + (params.toString() ? '?' + params : ''));
     const scales = result.list || result;
     const stats = result.stats;
     const tbody = document.querySelector('#page-assessments tbody');
@@ -833,6 +837,71 @@ setTimeout(() => {
     setTimeout(() => { bar.style.height = h; }, i * 80);
   });
 }, 300);
+
+// ========== 全局搜索 ==========
+setTimeout(() => {
+  const gs = document.getElementById('globalSearch');
+  if (gs) {
+    gs.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        const val = gs.value.trim();
+        const currentPage = document.querySelector('.page.active')?.id;
+        if (currentPage === 'page-users') { usersFilter.search = val; usersFilter.page = 1; loadUsersData(); }
+        else if (currentPage === 'page-assessments') { assessFilter.search = val; loadAssessmentsData(); }
+        else if (currentPage === 'page-entertainment') { entFilter.search = val; loadEntertainmentData(); }
+        else { toast('请在对应页面使用搜索'); }
+      }
+    });
+  }
+}, 300);
+
+// ========== 通知铃铛 ==========
+let notifyOpen = false;
+function toggleNotifyPanel() {
+  notifyOpen = !notifyOpen;
+  const panel = document.getElementById('notifyPanel');
+  if (panel) panel.style.display = notifyOpen ? 'block' : 'none';
+  if (notifyOpen) loadNotifications();
+}
+
+async function loadNotifications() {
+  try {
+    const data = await apiFetch('/api/v1/admin/notifications');
+    const list = document.getElementById('notifyList');
+    const dot = document.getElementById('notifyDot');
+    if (dot) dot.style.display = (data.unread > 0) ? 'block' : 'none';
+    if (!list) return;
+    if (!data.list || data.list.length === 0) {
+      list.innerHTML = '<div style="padding:20px;text-align:center;color:#999;font-size:13px;">暂无通知</div>';
+      return;
+    }
+    list.innerHTML = data.list.map(n => `
+      <div style="padding:10px 16px;border-bottom:1px solid #f5f5f5;cursor:pointer;${n.is_read?'':'background:#FFF8F0;'}" onclick="readNotify('${n.id}')">
+        <div style="font-weight:600;font-size:13px;color:var(--color-text-primary);">${escapeHtml(n.title)}</div>
+        <div style="font-size:12px;color:#999;margin-top:2px;">${escapeHtml(n.content||'')}</div>
+        <div style="font-size:11px;color:#bbb;margin-top:2px;">${n.created_at?n.created_at.slice(0,16):''}</div>
+      </div>`).join('');
+  } catch (e) { console.error('加载通知失败', e); }
+}
+
+async function markAllNotifyRead() {
+  try { await apiFetch('/api/v1/admin/notifications/read-all', 'PUT'); loadNotifications(); }
+  catch (e) { toast('操作失败', 'error'); }
+}
+
+async function readNotify(id) {
+  try { await apiFetch('/api/v1/admin/notifications/' + id + '/read', 'PUT'); loadNotifications(); }
+  catch (e) { console.error(e); }
+}
+
+// 点击页面其他地方关闭通知面板
+document.addEventListener('click', e => {
+  const panel = document.getElementById('notifyPanel');
+  const btn = document.getElementById('notifyBtn');
+  if (notifyOpen && panel && !panel.contains(e.target) && !btn.contains(e.target)) {
+    notifyOpen = false; panel.style.display = 'none';
+  }
+});
 
 // 绑定系统设置保存按钮
 setTimeout(() => {

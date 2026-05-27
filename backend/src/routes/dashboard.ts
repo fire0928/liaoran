@@ -178,15 +178,20 @@ dashboardRouter.put('/users/:id', (req: AuthRequest, res: Response) => {
 });
 
 // ==================== 测评管理 ====================
-dashboardRouter.get('/assessments', (_req: AuthRequest, res: Response) => {
+dashboardRouter.get('/assessments', (req: AuthRequest, res: Response) => {
   const db = getDatabase();
+  const search = req.query.search as string || '';
+  let where = '';
+  const params: any[] = [];
+  if (search) { where = 'WHERE s.name LIKE ?'; params.push(`%${search}%`); }
   const scales = db.prepare(`
     SELECT s.*,
       (SELECT COUNT(*) FROM assessment_records r WHERE r.scale_id = s.id) as completions,
       (SELECT ROUND(AVG(CAST(json_extract(r.raw_scores, '$.totalScore') AS REAL)), 1) FROM assessment_records r WHERE r.scale_id = s.id) as avg_score
     FROM assessment_scales s
+    ${where}
     ORDER BY s.category, s.created_at
-  `).all();
+  `).all(...params);
 
   const stats = {
     total: scales.length,
@@ -590,6 +595,32 @@ ${category === 'career' ? '• 职业倦怠信号明显，情绪耗竭维度尤�
 → 保持良好的睡眠习惯，每天至少7小时`;
 
   res.json({ code: 0, data: { report, severity } });
+});
+
+// ==================== 通知管理 ====================
+dashboardRouter.get('/notifications', (_req: AuthRequest, res: Response) => {
+  const db = getDatabase();
+  const list = db.prepare('SELECT * FROM admin_notifications ORDER BY created_at DESC LIMIT 50').all();
+  const unread = (db.prepare('SELECT COUNT(*) as cnt FROM admin_notifications WHERE is_read = 0').get() as any).cnt;
+  res.json({ code: 0, data: { list, unread } });
+});
+
+dashboardRouter.put('/notifications/:id/read', (req: AuthRequest, res: Response) => {
+  const db = getDatabase();
+  db.prepare('UPDATE admin_notifications SET is_read = 1 WHERE id = ?').run(req.params.id);
+  res.json({ code: 0, message: '已标记为已读' });
+});
+
+dashboardRouter.put('/notifications/read-all', (_req: AuthRequest, res: Response) => {
+  const db = getDatabase();
+  db.prepare('UPDATE admin_notifications SET is_read = 1').run();
+  res.json({ code: 0, message: '全部已读' });
+});
+
+dashboardRouter.delete('/notifications/:id', (req: AuthRequest, res: Response) => {
+  const db = getDatabase();
+  db.prepare('DELETE FROM admin_notifications WHERE id = ?').run(req.params.id);
+  res.json({ code: 0, message: '已删除' });
 });
 
 // ==================== 辅助函数 ====================
