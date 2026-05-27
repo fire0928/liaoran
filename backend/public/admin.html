@@ -675,98 +675,39 @@ button class="page-btn">1606</button>
           <h4 style="font-size:15px;font-weight:700;margin-bottom:var(--space-lg);color:var(--color-text-primary);">量表信息</h4>
           <div class="editor-field">
             <label class="editor-label">量表名称 <span class="required">*</span></label>
-            <input type="text" class="editor-input" value="焦虑自评量表（SAS）" placeholder="输入量表名称">
+            <input type="text" id="aeName" class="editor-input" placeholder="输入量表名称">
           </div>
           <div class="editor-field">
             <label class="editor-label">量表类别</label>
-            <select class="editor-select">
-              <option>焦虑筛查</option><option>抑郁筛查</option><option>压力评估</option><option>自尊评估</option><option>幸福感</option><option>睡眠质量</option>
+            <select id="aeCat" class="editor-select"><option>焦虑筛查</option><option>抑郁筛查</option><option>压力评估</option><option>自尊评估</option><option>幸福感</option><option>睡眠质量</option>
             </select>
           </div>
           <div class="editor-field">
             <label class="editor-label">简介描述</label>
-            <textarea class="editor-textarea" rows="3" placeholder="简要说明量表的用途和适用人群">用于评估受试者焦虑症状的严重程度和变化，适用于具有焦虑症状的成年人。</textarea>
+            <textarea id="aeDesc" class="editor-textarea" rows="3" placeholder="简要说明量表的用途和适用人群"></textarea>
           </div>
           <div class="editor-field">
             <label class="editor-label">计分方式</label>
-            <select class="editor-select">
-              <option>Likert 4级（0-3分）</option>
+            <select id="aeScoring" class="editor-select"><option value="likert4">Likert 4级（1-4分）</option><option value="likert5">Likert 5级（1-5分）</option><option value="yesno">是/否（0/1分）</option><option value="custom">自定义分数</option></select>
               <option>Likert 5级（1-5分）</option>
               <option>是/否（0/1分）</option>
               <option>自定义分数</option>
             </select>
           </div>
           <div style="margin-top:var(--space-xl);display:flex;flex-direction:column;gap:var(--space-sm);">
-            <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="">保存量表</button>
+            <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="saveScaleInfo()">保存量表</button>
             <button class="btn btn-outline" style="width:100%;justify-content:center;">预览效果</button>
             <button class="" style="width:100%;padding:8px;border:none;background:none;color:var(--color-danger);font-size:13px;font-weight:500;cursor:pointer;text-align:center;">删除此量表</button>
           </div>
         </aside>
 
-        <!-- 右侧：题目编辑器 + 计分规则 -->
-        <main class="editor-main">
+        <!-- 右侧：题目编辑器 + 计分规则 + AI模板 -->
+        <main class="editor-main" id="aeMain">
           <!-- 题目编辑区 -->
           <section class="editor-section">
-            <div class="editor-section-title"><span class="num-badge">1</span> 编辑试题</div>
-
-            <!-- 题目1 -->
-            <div class="question-card">
-              <div class="question-header">
-                <div class="question-num">Q1</div>
-                <input type="text" class="question-title-input" value="最近一周，你是否经常感到紧张或焦虑？">
-                <div class="question-actions">
-                  <button class="q-action-btn" title="上移"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18,15 12,9 6,15"/></svg></button>
-                  <button class="q-action-btn" title="下移"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6,9 12,15 18,9"/></svg></button>
-                  <button class="q-action-btn danger" title="删除"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
-                </div>
-              </div>
-              <div class="options-editor">
-                <div class="option-row"><input class="option-score" value="1" readonly><input class="option-text" value="没有或很少时间"></div>
-                <div class="option-row"><input class="option-score" value="2" readonly><input class="option-text" value="小部分时间"></div>
-                <div class="option-row"><input class="option-score" value="3" readonly><input class="option-text" value="相当多时间"></div>
-                <div class="option-row"><input class="option-score" value="4" readonly><input class="option-text" value="绝大部分或全部时间"></div>
-              </div>
-            </div>
-
-            <!-- 题目2 -->
-            <div class="question-card">
-              <div class="question-header">
-                <div class="question-num">Q2</div>
-                <input type="text" class="question-title-input" value="你是否常常感到无缘无故的害怕？">
-                <div class="question-actions">
-                  <button class="q-action-btn" title="上移"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18,15 12,9 6,15"/></svg></button>
-                  <button class="q-action-btn" title="下移"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6,9 12,15 18,9"/></svg></button>
-                  <button class="q-action-btn danger" title="删除"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
-                </div>
-              </div>
-              <div class="options-editor">
-                <div class="option-row"><input class="option-score" value="1" readonly><input class="option-text" value="没有或很少时间"></div>
-                <div class="option-row"><input class="option-score" value="2" readonly><input class="option-text" value="小部分时间"></div>
-                <div class="option-row"><input class="option-score" value="3" readonly><input class="option-text" value="相当多时间"></div>
-                <div class="option-row"><input class="option-score" value="4" readonly><input class="option-text" value="绝大部分或全部时间"></div>
-              </div>
-            </div>
-
-            <!-- 题目3 -->
-            <div class="question-card">
-              <div class="question-header">
-                <div class="question-num">Q3</div>
-                <input type="text" class="question-title-input" value="是否容易感到心慌或心跳加速？">
-                <div class="question-actions">
-                  <button class="q-action-btn" title="上移"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18,15 12,9 6,15"/></svg></button>
-                  <button class="q-action-btn" title="下移"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6,9 12,15 18,9"/></svg></button>
-                  <button class="q-action-btn danger" title="删除"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
-                </div>
-              </div>
-              <div class="options-editor">
-                <div class="option-row"><input class="option-score" value="1" readonly><input class="option-text" value="没有或很少时间"></div>
-                <div class="option-row"><input class="option-score" value="2" readonly><input class="option-text" value="小部分时间"></div>
-                <div class="option-row"><input class="option-score" value="3" readonly><input class="option-text" value="相当多时间"></div>
-                <div class="option-row"><input class="option-score" value="4" readonly><input class="option-text" value="绝大部分或全部时间"></div>
-              </div>
-            </div>
-
-            <button class="btn btn-outline" style="margin-top:var(--space-md); display:inline-flex;align-items:center;gap:6px;">
+            <div class="editor-section-title"><span class="num-badge">1</span> 编辑试题 <small style="font-weight:400;color:var(--color-text-tertiary);">（点击文本直接修改）</small></div>
+            <div id="aeQuestions"></div>
+            <button class="btn btn-outline" style="margin-top:var(--space-md); display:inline-flex;align-items:center;gap:6px;" onclick="addNewQuestion()">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               添加新题目
             </button>
@@ -774,74 +715,18 @@ button class="page-btn">1606</button>
 
           <!-- 计分规则配置区 -->
           <section class="editor-section">
-            <div class="scoring-rules-panel">
-              <div class="scoring-header">
-                <h3>计分规则配置</h3>
-                <span style="font-size:12px;color:var(--color-text-tertiary);">Likert 4级 · 总分 0-80 分</span>
-              </div>
-              <div class="scoring-body">
-                <!-- Likert 可视化 -->
-                <div class="likert-visual">
-                  <div class="likert-title">选项分值映射（每题）</div>
-                  <div class="likert-bar-row">
-                    <span class="likert-score-tag" style="background:#E8F5E9;color:#2E7D32;">1分</span>
-                    <span class="likert-score-desc">没有或很少</span>
-                    <div class="likert-bar-track"><div class="likert-bar-fill" style="width:25%;background:#81C784;">25%</div></div>
-                  </div>
-                  <div class="likert-bar-row">
-                    <span class="likert-score-tag" style="background:#FFF8E1;color:#F57F17;">2分</span>
-                    <span class="likert-score-desc">小部分时间</span>
-                    <div class="likert-bar-track"><div class="likert-bar-fill" style="width:50%;background:#FFD54F;">50%</div></div>
-                  </div>
-                  <div class="likert-bar-row">
-                    <span class="likert-score-tag" style="background:#FFF3E0;color:#E65100;">3分</span>
-                    <span class="likert-score-desc">相当多时间</span>
-                    <div class="likert-bar-track"><div class="likert-bar-fill" style="width:75%;background:#FFB74D;">75%</div></div>
-                  </div>
-                  <div class="likert-bar-row">
-                    <span class="likert-score-tag" style="background:#FFEBEE;color:#C62828;">4分</span>
-                    <span class="likert-score-desc">绝大/全部</span>
-                    <div class="likert-bar-track"><div class="likert-bar-fill" style="width:100%;background:#E57373;">100%</div></div>
-                  </div>
-                </div>
+            <div class="editor-section-title"><span class="num-badge">2</span> 计分标准配置</div>
+            <div style="font-size:12px;color:var(--color-text-tertiary);margin-bottom:12px;">配置各分数区间对应的等级和解读建议</div>
+            <div id="aeScoreRanges"></div>
+            <button class="btn btn-outline" style="margin-top:8px;" onclick="addScoreRange()">+ 添加分数区间</button>
+          </section>
 
-                <!-- 维度映射表 -->
-                <div class="dimension-map">
-                  <div class="dim-map-title">总分 → 焦虑程度判定标准</div>
-                  <table class="dim-map-table">
-                    <thead>
-                      <tr><th>等级</th><th>原始总分范围</th><th>标准分 (×1.25)</th><th>含义说明</th></tr>
-                    </thead>
-                    <tbody>
-                      <tr><td><span class="dim-level" style="background:#E8F5E9;color:#2E7D32;">正常</span></td><td class="dim-range">20 — 39</td><td class="dim-range">25 — 49</td><td>无明显焦虑症状</td></tr>
-                      <tr><td><span class="dim-level" style="background:#FFF8E1;color:#F57F17;">轻度</span></td><td class="dim-range">40 — 47</td><td class="dim-range">50 — 59</td><td>轻度焦虑，建议关注</td></tr>
-                      <tr><td><span class="dim-level" style="background:#FFE0B2;color:#EF6C00;">中度</span></td><td class="dim-range">48 — 57</td><td class="dim-range">60 — 69</td><td>中度焦虑，建议咨询</td></tr>
-                      <tr><td><span class="dim-level" style="background:#FFEBEE;color:#C62828;">重度</span></td><td class="dim-range">58 — 80</td><td class="dim-range">70 — 100</td><td>重度焦虑，需专业干预</td></tr>
-                    </tbody>
-                  </table>
-                </div>
-
-                <!-- 快速区间卡片 -->
-                <div class="range-cards">
-                  <div class="range-card" style="border-color:#A5D6A7;background:#F1F8E9;">
-                    <span class="range-val" style="color:#2E7D32;">&lt;40</span>
-                    <span class="range-label">正常范围</span>
-                  </div>
-                  <div class="range-card" style="border-color:#FFE082;background:#FFFDE7;">
-                    <span class="range-val" style="color:#F57F17;">40-47</span>
-                    <span class="range-label">轻度焦虑</span>
-                  </div>
-                  <div class="range-card" style="border-color:#FFCC80;background:#FFF3E0;">
-                    <span class="range-val" style="color:#EF6C00;">48-57</span>
-                    <span class="range-label">中度焦虑</span>
-                  </div>
-                  <div class="range-card" style="border-color:#EF9A9A;background:#FFEBEE;">
-                    <span class="range-val" style="color:#C62828;">&gt;58</span>
-                    <span class="range-label">重度焦虑</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <!-- AI 分析模板 -->
+          <section class="editor-section">
+            <div class="editor-section-title"><span class="num-badge">3</span> AI 分析报告模板</div>
+            <div style="font-size:12px;color:var(--color-text-tertiary);margin-bottom:12px;">配置不同分数区间对应的 AI 分析文案模板（支持变量：{score} {level} {scale_name}）</div>
+            <div id="aeAiTemplates"></div>
+            <button class="btn btn-outline" style="margin-top:8px;" onclick="addAiTemplate()">+ 添加分析模板</button>
           </section>
         </main>
       </div>

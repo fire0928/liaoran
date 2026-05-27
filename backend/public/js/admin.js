@@ -278,12 +278,8 @@ async function saveScale(id) {
 }
 
 async function editScale(id) {
-  try {
-    const scales = await apiFetch('/api/v1/admin/assessments');
-    const list = scales.list || scales;
-    const scale = list.find(s => s.id === id);
-    if (scale) openScaleModal(scale);
-  } catch (e) { toast('加载失败', 'error'); }
+  editorScaleId = id;
+  switchPage('assess-editor');
 }
 
 async function deleteScale(id, name) {
@@ -295,6 +291,7 @@ async function deleteScale(id, name) {
 // ==================== 4. 测评内容编辑 ====================
 let editorScaleId = null;
 let editorQuestions = [];
+let editorScaleData = null;
 
 async function loadAssessEditorData() {
   const page = document.getElementById('page-assess-editor');
@@ -302,77 +299,200 @@ async function loadAssessEditorData() {
   try {
     const result = await apiFetch('/api/v1/admin/assessments');
     const scales = result.list || result;
-    // 填充量表选择下拉
-    const scaleSelect = page.querySelector('#scaleSelect');
+    // 确保有量表选择下拉
+    let scaleSelect = document.getElementById('scaleSelect');
     if (!scaleSelect) {
-      const toolbar = page.querySelector('.table-toolbar') || page.querySelector('.editor-sidebar') || page.firstElementChild;
-      const selHtml = `<div style="padding:16px 20px;border-bottom:1px solid var(--color-border);"><label style="font-size:13px;color:var(--color-text-tertiary);">选择量表：</label>
-        <select id="scaleSelect" onchange="onScaleSelect()" style="padding:8px 12px;border:1px solid var(--color-border);border-radius:8px;font-size:14px;min-width:200px;">
+      const sidebar = page.querySelector('.editor-sidebar');
+      const selHtml = `<div style="margin-bottom:16px;"><label style="font-size:13px;color:var(--color-text-tertiary);display:block;margin-bottom:6px;">选择量表：</label>
+        <select id="scaleSelect" onchange="onScaleSelect()" style="padding:8px 12px;border:1px solid var(--color-border);border-radius:8px;font-size:14px;min-width:200px;width:100%;">
         <option value="">--- 请选择 ---</option>
         ${scales.map(s => `<option value="${s.id}">${s.name} [${catLabels[s.category]||s.category}]</option>`).join('')}
         </select></div>`;
-      toolbar.insertAdjacentHTML('beforebegin', selHtml);
+      sidebar.insertAdjacentHTML('afterbegin', selHtml);
+      scaleSelect = document.getElementById('scaleSelect');
+    } else {
+      // 更新下拉选项
+      scaleSelect.innerHTML = '<option value="">--- 请选择 ---</option>' + scales.map(s => `<option value="${s.id}">${s.name} [${catLabels[s.category]||s.category}]</option>`).join('');
     }
     if (editorScaleId) {
-      await loadScaleQuestions(editorScaleId);
+      scaleSelect.value = editorScaleId;
+      await loadScaleDetail(editorScaleId);
     }
   } catch (e) { console.error('加载编辑数据失败:', e); }
 }
 
 function onScaleSelect() {
   const id = document.getElementById('scaleSelect').value;
-  if (id) { editorScaleId = id; loadScaleQuestions(id); }
+  if (id) { editorScaleId = id; loadScaleDetail(id); }
 }
 
-async function loadScaleQuestions(scaleId) {
+async function loadScaleDetail(scaleId) {
   try {
-    const questions = await apiFetch('/api/v1/admin/assessments/'+scaleId+'/questions');
+    const [scale, questions] = await Promise.all([
+      apiFetch('/api/v1/admin/assessments/' + scaleId),
+      apiFetch('/api/v1/admin/assessments/' + scaleId + '/questions')
+    ]);
+    editorScaleData = scale;
     editorQuestions = questions;
-    const mainArea = document.querySelector('#page-assess-editor .editor-main');
-    if (!mainArea) return;
-    // 更新左侧量表信息
-    const scaleInfo = document.querySelector('#page-assess-editor .editor-sidebar');
-    if (scaleInfo) {
-      const settingSection = scaleInfo.querySelector('.editor-section');
-      if (settingSection) {
-        settingSection.innerHTML = `<h3 style="margin:0 0 12px;">量表信息</h3>
-          <div style="display:flex;flex-direction:column;gap:10px;">
-          <label>名称 <input value="${escapeHtml(questions[0]?.name||'')}" style="width:100%;padding:8px;border:1px solid #e0e0e0;border-radius:6px;"></label>
-          <label>类别 <select style="width:100%;padding:8px;border:1px solid #e0e0e0;border-radius:6px;">${Object.entries(catLabels).map(([k,v]) => `<option value="${k}">${v}</option>`).join('')}</select></label>
-          <div style="display:flex;gap:8px;margin-top:8px;"><button class="btn btn-primary btn-sm" onclick="saveScaleInfo()">保存量表</button><button class="btn btn-ghost btn-sm" style="color:var(--color-danger);" onclick="deleteCurrentScale()">删除量表</button></div>
-          </div>`;
-      }
-    }
-    // 渲染题目列表
-    renderQuestionEditor(questions);
-  } catch (e) { console.error('加载题目失败:', e); }
+    // 填充左侧表单
+    document.getElementById('aeName').value = scale.name || '';
+    document.getElementById('aeCat').value = scale.category || 'emotion';
+    document.getElementById('aeDesc').value = scale.description || '';
+    document.getElementById('aeScoring').value = scale.scoring_method || 'likert4';
+    // 渲染题目
+    renderAEQuestions(questions);
+    // 渲染计分标准
+    renderAEScoreRanges(scale.score_ranges);
+    // 渲染AI模板
+    renderAEAiTemplates(scale.ai_templates);
+  } catch (e) { console.error('加载量表详情失败:', e); toast('加载失败', 'error'); }
 }
 
-function renderQuestionEditor(questions) {
-  const mainArea = document.querySelector('#page-assess-editor .editor-main');
-  if (!mainArea) return;
-  let html = '<div style="padding:var(--space-lg);"><h3>题目管理</h3>';
-  questions.forEach((q,i) => {
+function renderAEQuestions(questions) {
+  const container = document.getElementById('aeQuestions');
+  if (!container) return;
+  if (!questions || questions.length === 0) {
+    container.innerHTML = '<div style="color:#999;padding:20px;text-align:center;">暂无题目，点击下方按钮添加</div>';
+    return;
+  }
+  container.innerHTML = questions.map((q,i) => {
     const opts = Array.isArray(q.options) ? q.options : (typeof q.options === 'string' ? JSON.parse(q.options||'[]') : []);
-    html += `<div class="q-block" style="border:1px solid var(--color-border);border-radius:12px;padding:16px;margin-bottom:12px;background:#fff;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        <b>Q${i+1}</b>
-        <span style="font-size:12px;color:var(--color-text-tertiary);">${q.dimension||''}</span>
-        <div style="display:flex;gap:4px;">
-          <button class="btn btn-ghost btn-sm" onclick="moveQuestion('${q.id}',${i-1})" ${i===0?'disabled':''}>↑</button>
-          <button class="btn btn-ghost btn-sm" onclick="moveQuestion('${q.id}',${i+1})" ${i===questions.length-1?'disabled':''}>↓</button>
-          <button class="btn btn-ghost btn-sm" style="color:var(--color-danger);" onclick="deleteQuestion('${q.id}')">✕</button>
+    return `<div class="question-card" style="margin-bottom:12px;">
+      <div class="question-header">
+        <div class="question-num">Q${i+1}</div>
+        <input type="text" class="question-title-input" value="${escapeHtml(q.question_text||'')}" onchange="updateQuestionText('${q.id}',this.value)">
+        <div class="question-actions">
+          <button class="q-action-btn" onclick="moveQuestion('${q.id}',${i-1})" ${i===0?'disabled':''}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18,15 12,9 6,15"/></svg></button>
+          <button class="q-action-btn" onclick="moveQuestion('${q.id}',${i+1})" ${i===questions.length-1?'disabled':''}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6,9 12,15 18,9"/></svg></button>
+          <button class="q-action-btn danger" onclick="deleteQuestion('${q.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
         </div>
       </div>
-      <input value="${escapeHtml(q.question_text||'')}" style="width:100%;padding:8px;border:1px solid #e0e0e0;border-radius:6px;margin-bottom:8px;" onchange="updateQuestionText('${q.id}',this.value)">
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">${opts.map((o,j) => `
-        <span style="background:#f5f5f5;padding:4px 10px;border-radius:6px;font-size:12px;">${o.score||j+1}分: ${o.label||''}</span>
-      `).join('')}</div>
-      <div style="font-size:11px;color:#999;margin-top:4px;">维度：<input style="width:100px;padding:4px;border:1px solid #e0e0e0;border-radius:4px;font-size:12px;" value="${escapeHtml(q.dimension||'')}" onchange="updateQuestionField('${q.id}','dimension',this.value)"> | 反向计分：<input type="checkbox" ${q.reverse_score?'checked':''} onchange="updateQuestionField('${q.id}','reverse_score',this.checked?1:0)"></div>
+      <div class="options-editor">
+        ${opts.map((o,j) => `<div class="option-row"><input class="option-score" value="${o.score||j+1}" readonly><input class="option-text" value="${escapeHtml(o.label||'')}" readonly></div>`).join('')}
+      </div>
+      <div style="font-size:11px;color:#999;margin-top:6px;display:flex;gap:12px;align-items:center;">
+        <span>维度：<input style="width:80px;padding:3px 6px;border:1px solid #e0e0e0;border-radius:4px;font-size:12px;" value="${escapeHtml(q.dimension||'')}" onchange="updateQuestionField('${q.id}','dimension',this.value)"></span>
+        <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" ${q.reverse_score?'checked':''} onchange="updateQuestionField('${q.id}','reverse_score',this.checked?1:0)"> 反向计分</label>
+      </div>
     </div>`;
-  });
-  html += `<button class="btn btn-outline" style="margin-top:8px;" onclick="addNewQuestion()">+ 添加新题目</button></div>`;
-  mainArea.innerHTML = html;
+  }).join('');
+}
+
+function renderAEScoreRanges(ranges) {
+  const container = document.getElementById('aeScoreRanges');
+  if (!container) return;
+  const list = Array.isArray(ranges) ? ranges : (ranges ? [ranges] : []);
+  if (list.length === 0) {
+    container.innerHTML = '';
+    addScoreRange(true);
+    return;
+  }
+  container.innerHTML = list.map((r,i) => `
+    <div class="score-range-row" style="display:flex;gap:8px;align-items:center;margin-bottom:8px;padding:10px;background:var(--color-surface-warm);border-radius:8px;">
+      <input type="number" class="sr-min" placeholder="最小分" value="${r.min??''}" style="width:70px;padding:6px;border:1px solid var(--color-border);border-radius:6px;font-size:13px;">
+      <span style="color:#999;">-</span>
+      <input type="number" class="sr-max" placeholder="最大分" value="${r.max??''}" style="width:70px;padding:6px;border:1px solid var(--color-border);border-radius:6px;font-size:13px;">
+      <input type="text" class="sr-label" placeholder="等级名称" value="${escapeHtml(r.label||'')}" style="flex:1;padding:6px;border:1px solid var(--color-border);border-radius:6px;font-size:13px;">
+      <input type="text" class="sr-color" placeholder="颜色" value="${escapeHtml(r.color||'')}" style="width:80px;padding:6px;border:1px solid var(--color-border);border-radius:6px;font-size:13px;">
+      <input type="text" class="sr-desc" placeholder="含义说明" value="${escapeHtml(r.description||'')}" style="flex:2;padding:6px;border:1px solid var(--color-border);border-radius:6px;font-size:13px;">
+      <button class="btn btn-ghost btn-sm" style="color:var(--color-danger);padding:4px 8px;" onclick="this.parentElement.remove()">✕</button>
+    </div>
+  `).join('');
+}
+
+function addScoreRange(silent) {
+  const container = document.getElementById('aeScoreRanges');
+  if (!container) return;
+  const div = document.createElement('div');
+  div.className = 'score-range-row';
+  div.style.cssText = 'display:flex;gap:8px;align-items:center;margin-bottom:8px;padding:10px;background:var(--color-surface-warm);border-radius:8px;';
+  div.innerHTML = `<input type="number" class="sr-min" placeholder="最小分" style="width:70px;padding:6px;border:1px solid var(--color-border);border-radius:6px;font-size:13px;">
+      <span style="color:#999;">-</span>
+      <input type="number" class="sr-max" placeholder="最大分" style="width:70px;padding:6px;border:1px solid var(--color-border);border-radius:6px;font-size:13px;">
+      <input type="text" class="sr-label" placeholder="等级名称" style="flex:1;padding:6px;border:1px solid var(--color-border);border-radius:6px;font-size:13px;">
+      <input type="text" class="sr-color" placeholder="颜色" style="width:80px;padding:6px;border:1px solid var(--color-border);border-radius:6px;font-size:13px;">
+      <input type="text" class="sr-desc" placeholder="含义说明" style="flex:2;padding:6px;border:1px solid var(--color-border);border-radius:6px;font-size:13px;">
+      <button class="btn btn-ghost btn-sm" style="color:var(--color-danger);padding:4px 8px;" onclick="this.parentElement.remove()">✕</button>`;
+  container.appendChild(div);
+  if (!silent) div.querySelector('input').focus();
+}
+
+function getScoreRangesFromDOM() {
+  const rows = document.querySelectorAll('#aeScoreRanges .score-range-row');
+  return Array.from(rows).map(row => ({
+    min: parseInt(row.querySelector('.sr-min').value) || 0,
+    max: parseInt(row.querySelector('.sr-max').value) || 0,
+    label: row.querySelector('.sr-label').value,
+    color: row.querySelector('.sr-color').value,
+    description: row.querySelector('.sr-desc').value
+  })).filter(r => r.label);
+}
+
+function renderAEAiTemplates(templates) {
+  const container = document.getElementById('aeAiTemplates');
+  if (!container) return;
+  const list = Array.isArray(templates) ? templates : (templates ? [templates] : []);
+  if (list.length === 0) {
+    container.innerHTML = '';
+    addAiTemplate(true);
+    return;
+  }
+  container.innerHTML = list.map((t,i) => `
+    <div class="ai-template-row" style="margin-bottom:12px;padding:12px;background:var(--color-surface-warm);border-radius:8px;">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+        <input type="number" class="at-min" placeholder="最小分" value="${t.min??''}" style="width:70px;padding:6px;border:1px solid var(--color-border);border-radius:6px;font-size:13px;">
+        <span style="color:#999;">-</span>
+        <input type="number" class="at-max" placeholder="最大分" value="${t.max??''}" style="width:70px;padding:6px;border:1px solid var(--color-border);border-radius:6px;font-size:13px;">
+        <input type="text" class="at-level" placeholder="等级标签" value="${escapeHtml(t.level||'')}" style="flex:1;padding:6px;border:1px solid var(--color-border);border-radius:6px;font-size:13px;">
+        <button class="btn btn-ghost btn-sm" style="color:var(--color-danger);padding:4px 8px;" onclick="this.closest('.ai-template-row').remove()">✕</button>
+      </div>
+      <textarea class="at-prompt" placeholder="AI分析模板文案，支持变量：{score} {level} {scale_name}" style="width:100%;padding:8px;border:1px solid var(--color-border);border-radius:6px;font-size:13px;min-height:60px;resize:vertical;">${escapeHtml(t.prompt||'')}</textarea>
+    </div>
+  `).join('');
+}
+
+function addAiTemplate(silent) {
+  const container = document.getElementById('aeAiTemplates');
+  if (!container) return;
+  const div = document.createElement('div');
+  div.className = 'ai-template-row';
+  div.style.cssText = 'margin-bottom:12px;padding:12px;background:var(--color-surface-warm);border-radius:8px;';
+  div.innerHTML = `<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+        <input type="number" class="at-min" placeholder="最小分" style="width:70px;padding:6px;border:1px solid var(--color-border);border-radius:6px;font-size:13px;">
+        <span style="color:#999;">-</span>
+        <input type="number" class="at-max" placeholder="最大分" style="width:70px;padding:6px;border:1px solid var(--color-border);border-radius:6px;font-size:13px;">
+        <input type="text" class="at-level" placeholder="等级标签" style="flex:1;padding:6px;border:1px solid var(--color-border);border-radius:6px;font-size:13px;">
+        <button class="btn btn-ghost btn-sm" style="color:var(--color-danger);padding:4px 8px;" onclick="this.closest('.ai-template-row').remove()">✕</button>
+      </div>
+      <textarea class="at-prompt" placeholder="AI分析模板文案，支持变量：{score} {level} {scale_name}" style="width:100%;padding:8px;border:1px solid var(--color-border);border-radius:6px;font-size:13px;min-height:60px;resize:vertical;"></textarea>`;
+  container.appendChild(div);
+  if (!silent) div.querySelector('input').focus();
+}
+
+function getAiTemplatesFromDOM() {
+  const rows = document.querySelectorAll('#aeAiTemplates .ai-template-row');
+  return Array.from(rows).map(row => ({
+    min: parseInt(row.querySelector('.at-min').value) || 0,
+    max: parseInt(row.querySelector('.at-max').value) || 0,
+    level: row.querySelector('.at-level').value,
+    prompt: row.querySelector('.at-prompt').value
+  })).filter(r => r.level || r.prompt);
+}
+
+async function saveScaleInfo() {
+  if (!editorScaleId) { toast('请先选择量表', 'error'); return; }
+  const body = {
+    name: document.getElementById('aeName').value,
+    category: document.getElementById('aeCat').value,
+    description: document.getElementById('aeDesc').value,
+    scoring_method: document.getElementById('aeScoring').value,
+    score_ranges: getScoreRangesFromDOM(),
+    ai_templates: getAiTemplatesFromDOM()
+  };
+  try {
+    await apiFetch('/api/v1/admin/assessments/' + editorScaleId, 'PUT', body);
+    toast('量表信息已保存');
+  } catch (e) { toast('保存失败: ' + e.message, 'error'); }
 }
 
 async function addNewQuestion() {
@@ -382,7 +502,7 @@ async function addNewQuestion() {
     await apiFetch('/api/v1/admin/assessments/'+editorScaleId+'/questions', 'POST', {
       question_text: '新题目（点击编辑）', options: defaultOpts, question_order: editorQuestions.length + 1
     });
-    toast('题目已添加'); loadScaleQuestions(editorScaleId);
+    toast('题目已添加'); loadScaleDetail(editorScaleId);
   } catch (e) { toast('添加失败: '+e.message, 'error'); }
 }
 
@@ -398,21 +518,20 @@ async function updateQuestionField(qId, field, value) {
 
 async function deleteQuestion(qId) {
   if (!confirm('删除此题？')) return;
-  try { await apiFetch(`/api/v1/admin/assessments/${editorScaleId}/questions/${qId}`, 'DELETE'); toast('已删除'); loadScaleQuestions(editorScaleId); }
+  try { await apiFetch(`/api/v1/admin/assessments/${editorScaleId}/questions/${qId}`, 'DELETE'); toast('已删除'); loadScaleDetail(editorScaleId); }
   catch (e) { toast('删除失败: '+e.message, 'error'); }
 }
 
 async function moveQuestion(qId, newOrder) {
-  try { await apiFetch(`/api/v1/admin/assessments/${editorScaleId}/questions/${qId}`, 'PUT', { question_order: newOrder }); loadScaleQuestions(editorScaleId); }
+  try { await apiFetch(`/api/v1/admin/assessments/${editorScaleId}/questions/${qId}`, 'PUT', { question_order: newOrder }); loadScaleDetail(editorScaleId); }
   catch (e) { console.error(e); }
 }
 
 async function deleteCurrentScale() {
   if (!editorScaleId) return;
-  const sel = document.getElementById('scaleSelect');
-  const name = sel ? sel.options[sel.selectedIndex]?.text : '当前量表';
+  const name = document.getElementById('aeName')?.value || '当前量表';
   if (!confirm(`确定删除"${name}"？`)) return;
-  try { await apiFetch('/api/v1/admin/assessments/'+editorScaleId, 'DELETE'); toast('量表已删除'); editorScaleId=null; editorQuestions=[]; loadAssessEditorData(); }
+  try { await apiFetch('/api/v1/admin/assessments/'+editorScaleId, 'DELETE'); toast('量表已删除'); editorScaleId=null; editorQuestions=[]; editorScaleData=null; loadAssessEditorData(); }
   catch (e) { toast('删除失败: '+e.message, 'error'); }
 }
 

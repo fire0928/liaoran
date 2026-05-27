@@ -214,6 +214,13 @@ dashboardRouter.post('/assessments', (req: AuthRequest, res: Response) => {
   res.json({ code: 0, data: { id, name } });
 });
 
+dashboardRouter.get('/assessments/:id', (req: AuthRequest, res: Response) => {
+  const db = getDatabase();
+  const scale = db.prepare('SELECT * FROM assessment_scales WHERE id = ?').get(req.params.id);
+  if (!scale) { res.status(404).json({ code: 404, message: '量表不存在' }); return; }
+  res.json({ code: 0, data: { ...scale, score_ranges: safeJsonParse(scale.score_ranges) } });
+});
+
 dashboardRouter.put('/assessments/:id', (req: AuthRequest, res: Response) => {
   const db = getDatabase();
   const { name, category, description, estimated_minutes, scoring_method, score_ranges, status } = req.body;

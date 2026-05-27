@@ -386,8 +386,9 @@ export async function initDatabase(): Promise<void> {
   `);
 
   // 兼容旧表：缺失列补充
-  try { db.exec('ALTER TABLE assessment_scales ADD COLUMN scoring_method TEXT DEFAULT \'likert4\''); } catch (e) {}
-  try { db.exec('ALTER TABLE assessment_scales ADD COLUMN score_ranges TEXT'); } catch (e) {}
+    try { db.exec('ALTER TABLE assessment_scales ADD COLUMN scoring_method TEXT DEFAULT \'likert4\''); } catch (e) {}
+    try { db.exec('ALTER TABLE assessment_scales ADD COLUMN score_ranges TEXT'); } catch (e) {}
+    try { db.exec('ALTER TABLE assessment_scales ADD COLUMN ai_templates TEXT'); } catch (e) {}
   try { db.exec('ALTER TABLE assessment_questions ADD COLUMN option_labels TEXT'); } catch (e) {}
   try { db.exec('ALTER TABLE ai_agents ADD COLUMN avatar_emoji TEXT DEFAULT \'🤖\''); } catch (e) {}
   try { db.exec('ALTER TABLE ai_agents ADD COLUMN model_name TEXT DEFAULT \'gpt-4o\''); } catch (e) {}
