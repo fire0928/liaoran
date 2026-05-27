@@ -781,16 +781,16 @@ async function loadSmsSettings() {
 
 async function saveSmsSettings() {
   const smsKeys = ['sms_secret_id','sms_secret_key','sms_sdk_app_id','sms_sign_name','sms_template_id'];
-  const idMap: Record<string, string> = {
+  const idMap = {
     'sms_secret_id': 'setSmsSecretId',
     'sms_secret_key': 'setSmsSecretKey',
     'sms_sdk_app_id': 'setSmsSdkAppId',
     'sms_sign_name': 'setSmsSignName',
     'sms_template_id': 'setSmsTemplateId',
   };
-  const settings: Record<string, string> = {};
+  const settings = {};
   for (const key of smsKeys) {
-    const el = document.getElementById(idMap[key]) as HTMLInputElement;
+    const el = document.getElementById(idMap[key]);
     if (el) settings[key] = el.value.trim();
   }
   try {
