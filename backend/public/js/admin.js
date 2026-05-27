@@ -973,7 +973,32 @@ async function saveAIModel(id) {
 }
 
 async function testAIModel(id) {
-  toast('连通性测试功能开发中，请保存后在使用端验证', 'info');
+  const section = document.querySelector('[data-model-id="'+id+'"]');
+  if (!section) return;
+  const api_key = section.querySelector('.mm-key').value;
+  const endpoint = section.querySelector('.mm-endpoint').value;
+  if (!api_key) { toast('请先填写 API 密钥', 'error'); return; }
+  if (!endpoint) { toast('请先填写 API 端点地址', 'error'); return; }
+
+  // 显示测试中状态
+  const testBtn = section.querySelector('.btn-ghost');
+  const origText = testBtn.textContent;
+  testBtn.textContent = '测试中...';
+  testBtn.disabled = true;
+
+  try {
+    const result = await apiFetch('/api/v1/admin/ai-models/' + id + '/test', 'POST', { api_key, endpoint });
+    if (result.success) {
+      toast(result.message, 'success');
+    } else {
+      toast(result.message, 'error');
+    }
+  } catch (e) {
+    toast('测试失败: ' + e.message, 'error');
+  } finally {
+    testBtn.textContent = origText;
+    testBtn.disabled = false;
+  }
 }
 
 // ==================== 12. AI 分析中心 ====================

@@ -553,6 +553,73 @@ dashboardRouter.put('/ai-models/:id', (req: AuthRequest, res: Response) => {
   res.json({ code: 0, message: '模型配置已更新' });
 });
 
+// 测试模型连通性
+dashboardRouter.post('/ai-models/:id/test', (req: AuthRequest, res: Response) => {
+  const db = getDatabase();
+  const model = db.prepare('SELECT * FROM ai_model_configs WHERE id = ?').get(req.params.id) as any;
+  if (!model) { res.status(404).json({ code: 404, message: '模型不存在' }); return; }
+
+  const apiKey = req.body.api_key || model.api_key || '';
+  const endpoint = req.body.endpoint || model.endpoint || '';
+
+  if (!apiKey || !endpoint) {
+    res.json({ code: 1, message: '请先填写 API 密钥和端点地址', success: false });
+    return;
+  }
+
+  const startTime = Date.now();
+
+  // 构造测试请求
+  let url = endpoint.replace(/\/+$/, '');
+  let body: any;
+  let headers: Record<string, string> = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` };
+
+  if (model.api_type === 'image') {
+    // 图像生成测试：发一个简单文生图请求
+    url += '/images/generations';
+    body = JSON.stringify({
+      model: model.model_name,
+      prompt: 'test',
+      n: 1,
+      size: '256x256'
+    });
+  } else {
+    // OpenAI 兼容：发一个简单 chat 请求验证连通
+    url += '/chat/completions';
+    body = JSON.stringify({
+      model: model.model_name,
+      messages: [{ role: 'user', content: 'hi' }],
+      max_tokens: 5,
+      temperature: 0
+    });
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+  fetch(url, { method: 'POST', headers, body, signal: controller.signal })
+    .then(async (resp) => {
+      clearTimeout(timeoutId);
+      const latency = Date.now() - startTime;
+      const text = await resp.text();
+      if (resp.ok) {
+        res.json({ code: 0, message: `连通成功 · 延迟 ${latency}ms`, success: true, latency });
+      } else if (resp.status === 401 || resp.status === 403) {
+        res.json({ code: 2, message: `认证失败 (${resp.status}) — 请检查 API 密钥是否正确`, success: false, latency });
+      } else {
+        let errMsg = `服务返回 ${resp.status}`;
+        try { const j = JSON.parse(text); if (j.error?.message) errMsg = j.error.message; } catch (_) {}
+        res.json({ code: 3, message: errMsg, success: false, latency });
+      }
+    })
+    .catch((err: any) => {
+      clearTimeout(timeoutId);
+      const latency = Date.now() - startTime;
+      let msg = err.name === 'AbortError' ? '请求超时（>15s），请检查网络或端点地址' : `连接失败: ${err.message || err}`;
+      res.json({ code: 4, message: msg, success: false, latency });
+    });
+});
+
 // ==================== AI 分析中心 ====================
 dashboardRouter.get('/ai-status', (_req: AuthRequest, res: Response) => {
   const db = getDatabase();
