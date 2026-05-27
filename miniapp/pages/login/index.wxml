@@ -1,0 +1,30 @@
+<!-- 了然小程序 - 登录页 -->
+<view class="login-page">
+  <view class="login-box">
+    <!-- Logo -->
+    <view class="login-logo">了</view>
+    <text class="login-title">了然</text>
+    <text class="login-subtitle">AI心理认知与自我疗愈</text>
+    <text class="login-tagline">懂你 · 帮你 · 愈己</text>
+
+    <!-- 手机号 -->
+    <view class="input-group">
+      <input class="login-input" type="number" maxlength="11"
+             value="{{phone}}" placeholder="请输入手机号"
+             bindinput="onPhoneInput"/>
+    </view>
+
+    <!-- 验证码 -->
+    <view class="input-group" wx:if="{{showCodeInput}}">
+      <input class="login-input" type="number" maxlength="6"
+             value="{{code}}" placeholder="验证码（测试: 123456）"
+             bindinput="onCodeInput"/>
+    </view>
+
+    <!-- 按钮 -->
+    <button class="login-btn" wx:if="{{!showCodeInput}}"
+            bindtap="onGetCode">{{loading ? '发送中...' : '获取验证码'}}</button>
+    <button class="login-btn" wx:if="{{showCodeInput}}"
+            bindtap="onLogin">{{loading ? '登录中...' : '登录'}}</button>
+  </view>
+</view>

@@ -1,0 +1,48 @@
+<!-- 了然小程序 - 个人中心 -->
+<view class="page">
+  <!-- 个人信息 -->
+  <view class="card" style="text-align:center;">
+    <view class="profile-avatar">
+      <text class="avatar-text">{{userInfo?.nickname ? userInfo.nickname[0] : '了'}}</text>
+    </view>
+    <text class="text-xl font-bold" style="display:block;margin-top:24rpx;">{{userInfo?.nickname || '了然用户'}}</text>
+    <text class="text-sm text-tertiary">ID: {{userInfo?.id ? userInfo.id.slice(0,12) : '---'}}****</text>
+    <view class="flex stats-row">
+      <view class="stat-item">
+        <text class="stat-value">{{stats.assessCount}}</text>
+        <text class="text-sm text-tertiary">测评</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-value">{{stats.chatCount}}</text>
+        <text class="text-sm text-tertiary">对话</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-value">{{stats.streak}}</text>
+        <text class="text-sm text-tertiary">连续打卡</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 菜单 -->
+  <view class="card" style="padding:0;">
+    <view class="menu-item" bindtap="goToProfile">
+      <text>个人资料</text>
+      <text class="text-tertiary">→</text>
+    </view>
+    <view class="menu-item" bindtap="goToSecurity">
+      <text>账号安全</text>
+      <text class="text-tertiary">→</text>
+    </view>
+    <view class="menu-item" bindtap="goToPrivacy">
+      <text>隐私设置</text>
+      <text class="text-tertiary">→</text>
+    </view>
+    <view class="menu-item" bindtap="goToAbout">
+      <text>关于了然</text>
+      <text class="text-tertiary">→</text>
+    </view>
+  </view>
+
+  <!-- 退出 -->
+  <button class="logout-btn" bindtap="onLogout">退出登录</button>
+</view>

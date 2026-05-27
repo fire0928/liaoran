@@ -1,0 +1,34 @@
+{
+  "pages": [
+    "pages/login/index",
+    "pages/home/index",
+    "pages/assess/index",
+    "pages/assess/questions",
+    "pages/assess/result",
+    "pages/chat/index",
+    "pages/chat/conversation",
+    "pages/treehole/index",
+    "pages/profile/index"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#FAF8F5",
+    "navigationBarTitleText": "了然",
+    "navigationBarTextStyle": "black"
+  },
+  "tabBar": {
+    "color": "#A69E94",
+    "selectedColor": "#E8835A",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
+    "list": [
+      { "pagePath": "pages/home/index", "text": "首页", "iconPath": "images/tab-home.png", "selectedIconPath": "images/tab-home-active.png" },
+      { "pagePath": "pages/assess/index", "text": "测评", "iconPath": "images/tab-assess.png", "selectedIconPath": "images/tab-assess-active.png" },
+      { "pagePath": "pages/chat/index", "text": "对话", "iconPath": "images/tab-chat.png", "selectedIconPath": "images/tab-chat-active.png" },
+      { "pagePath": "pages/treehole/index", "text": "树洞", "iconPath": "images/tab-treehole.png", "selectedIconPath": "images/tab-treehole-active.png" },
+      { "pagePath": "pages/profile/index", "text": "我的", "iconPath": "images/tab-profile.png", "selectedIconPath": "images/tab-profile-active.png" }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

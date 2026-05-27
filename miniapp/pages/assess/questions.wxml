@@ -1,0 +1,48 @@
+<!-- 了然小程序 - 测评答题页 -->
+<view class="questions-page">
+  <!-- 顶部信息 -->
+  <view class="q-header">
+    <text class="text-lg font-bold">{{scaleName}}</text>
+    <text class="text-sm text-tertiary" style="display:block;">{{scaleInfo?.description || ''}}</text>
+  </view>
+
+  <!-- 进度 -->
+  <view class="progress-section">
+    <view class="progress-info">
+      <text class="text-sm text-secondary">第 {{currentIndex + 1}} / {{questions.length}} 题</text>
+      <text class="text-sm" style="color:var(--color-primary);">
+        {{submitting ? '提交中...' : (answers.filter(a => a !== null).length + ' 题已答')}}
+      </text>
+    </view>
+    <view class="progress-bar">
+      <view class="progress-fill" style="width: {{(answers.filter(a => a !== null).length / questions.length * 100)}}%;"></view>
+    </view>
+  </view>
+
+  <!-- 题目卡片 -->
+  <view wx:if="{{questions.length > 0 && questions[currentIndex]}}" class="question-card card">
+    <text class="question-text">{{questions[currentIndex].question_text || questions[currentIndex].text}}</text>
+
+    <!-- 选项列表 -->
+    <view class="options-list">
+      <view wx:for="{{questions[currentIndex].options}}" wx:key="*this"
+            class="option-item {{answers[currentIndex] && answers[currentIndex].selectedIndex === index ? 'selected' : ''}}"
+            data-value="{{item.score || index}}"
+            bindtap="onSelectOption">
+        <view class="option-radio">
+          <view wx:if="{{answers[currentIndex] && answers[currentIndex].selectedIndex === index}}" class="option-dot"></view>
+        </view>
+        <text class="option-label">{{item.label || item.text || item}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 导航按钮 -->
+  <view class="q-nav">
+    <button class="btn-outline" wx:if="{{currentIndex > 0}}" bindtap="onPrev">上一题</button>
+    <button wx:if="{{currentIndex < questions.length - 1}}" class="btn-primary" style="flex:1;"
+            bindtap="onNext" disabled="{{!answers[currentIndex]}}">下一题</button>
+    <button wx:if="{{currentIndex >= questions.length - 1}}" class="btn-primary" style="flex:1;"
+            bindtap="onSubmit" disabled="{{submitting}}">{{submitting ? '提交中...' : '提交答案'}}</button>
+  </view>
+</view>

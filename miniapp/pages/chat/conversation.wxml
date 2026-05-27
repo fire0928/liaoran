@@ -1,0 +1,42 @@
+<!-- 了然小程序 - 对话会话页 -->
+<view class="conv-page">
+  <!-- 头部 -->
+  <view class="conv-header">
+    <text class="back-btn" bindtap="onBack">← 返回</text>
+    <view class="conv-header-center">
+      <view class="conv-agent-icon">AI</view>
+      <view>
+        <text class="text-lg font-bold">AI倾听伙伴</text>
+        <text class="text-sm" style="color:var(--color-success);display:block;">在线 · 用心倾听</text>
+      </view>
+    </view>
+    <view style="width:80rpx;"></view>
+  </view>
+
+  <!-- 消息列表 -->
+  <scroll-view scroll-y class="conv-messages"
+               scroll-into-view="msg-{{messages.length - 1}}"
+               scroll-with-animation>
+    <view wx:for="{{messages}}" wx:key="id" id="msg-{{index}}"
+          class="msg-row {{item.role === 'user' ? 'msg-user' : 'msg-ai'}}">
+      <view class="msg-bubble {{item.role === 'user' ? 'bubble-user' : 'bubble-ai'}}">
+        <text>{{item.content}}</text>
+      </view>
+    </view>
+    <view wx:if="{{loading}}" class="msg-row msg-ai">
+      <view class="msg-bubble bubble-ai">
+        <text style="color:var(--color-text-tertiary);">对方正在输入...</text>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 输入区 -->
+  <view class="conv-input-area">
+    <input class="conv-input" value="{{inputText}}"
+           placeholder="输入你想说的话..." bindinput="onInput"
+           confirm-type="send" bindconfirm="onSend"
+           disabled="{{loading}}"/>
+    <button class="conv-send-btn" bindtap="onSend"
+            disabled="{{!inputText.trim() || loading}}">发送</button>
+  </view>
+</view>

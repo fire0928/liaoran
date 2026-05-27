@@ -1,0 +1,53 @@
+/* 首页样式 */
+.page { padding-bottom: 40rpx; }
+
+.welcome-banner {
+  margin: 24rpx;
+  padding: 40rpx 32rpx;
+  border-radius: 40rpx;
+  background: linear-gradient(165deg, var(--color-bg), var(--color-primary-light) 50%, var(--color-secondary-light));
+}
+.welcome-title { font-size: 40rpx; font-weight: 700; display: block; }
+.welcome-desc { font-size: 28rpx; color: var(--color-text-secondary); margin-top: 8rpx; display: block; }
+.welcome-quote {
+  margin-top: 24rpx;
+  padding: 24rpx;
+  background: var(--color-surface);
+  border-radius: 24rpx;
+  border-left: 6rpx solid var(--color-primary);
+}
+.welcome-quote-text { font-size: 32rpx; font-weight: 600; }
+.welcome-quote-author { font-size: 24rpx; color: var(--color-text-tertiary); display: block; margin-top: 8rpx; }
+
+.mood-scroll { white-space: nowrap; margin-top: 16rpx; }
+.mood-chip {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 16rpx 28rpx; border-radius: 40rpx; font-size: 26rpx;
+  background: var(--color-surface); color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+.quick-card {
+  flex: 1; padding: 32rpx; border-radius: 32rpx;
+}
+
+.agent-card {
+  width: 360rpx; padding: 32rpx; border-radius: 32rpx;
+  background: var(--color-surface); flex-shrink: 0;
+  border: 1px solid var(--color-border);
+}
+.agent-avatar {
+  width: 80rpx; height: 80rpx; border-radius: 24rpx;
+  background: var(--color-primary);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 32rpx; font-weight: 700;
+}
+.agent-tag {
+  display: inline-block; margin-top: 16rpx; padding: 6rpx 20rpx;
+  border-radius: 40rpx; font-size: 22rpx; font-weight: 500;
+  background: var(--color-primary-light); color: var(--color-primary);
+}
+
+.stats-row { margin-top: 20rpx; justify-content: space-around; }
+.stat-item { text-align: center; }
+.stat-value { font-size: 56rpx; font-weight: 700; display: block; line-height: 1.1; }

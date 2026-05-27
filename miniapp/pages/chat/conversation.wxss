@@ -1,0 +1,102 @@
+/* 了然小程序 - 对话会话页 */
+.conv-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--color-bg);
+}
+
+.conv-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 24rpx;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border-light);
+}
+.back-btn {
+  font-size: 28rpx;
+  color: var(--color-primary);
+}
+.conv-header-center {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+.conv-agent-icon {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 16rpx;
+  background: var(--color-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.conv-messages {
+  flex: 1;
+  padding: 24rpx;
+  overflow-y: auto;
+}
+.msg-row {
+  margin-bottom: 24rpx;
+  display: flex;
+}
+.msg-user {
+  justify-content: flex-end;
+}
+.msg-ai {
+  justify-content: flex-start;
+}
+.msg-bubble {
+  max-width: 80%;
+  padding: 20rpx 28rpx;
+  border-radius: 36rpx;
+  font-size: 28rpx;
+  line-height: 1.6;
+}
+.bubble-user {
+  background: var(--color-primary-light);
+  border-bottom-right-radius: 8rpx;
+}
+.bubble-ai {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-bottom-left-radius: 8rpx;
+}
+
+.conv-input-area {
+  display: flex;
+  gap: 16rpx;
+  padding: 20rpx 24rpx;
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border-light);
+}
+.conv-input {
+  flex: 1;
+  height: 72rpx;
+  padding: 0 28rpx;
+  border-radius: 44rpx;
+  background: var(--color-surface-warm);
+  font-size: 28rpx;
+  border: none;
+}
+.conv-send-btn {
+  width: 140rpx;
+  height: 72rpx;
+  border-radius: 44rpx;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 26rpx;
+  text-align: center;
+  line-height: 72rpx;
+  border: none;
+  padding: 0;
+}
+.conv-send-btn[disabled] {
+  opacity: 0.5;
+}

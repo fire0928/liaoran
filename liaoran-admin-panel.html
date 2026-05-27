@@ -1,0 +1,2185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>了然管理台 - 后台管理系统</title>
+  <style>
+    /* ============================================
+       设计令牌 - 复用了然品牌体系 + 后台增强
+       ============================================ */
+    :root {
+      --color-primary: #E8835A;
+      --color-primary-hover: #D4724B;
+      --color-primary-light: #FDF0EB;
+      --color-primary-soft: #F5C4AD;
+      --color-secondary: #6BAF9E;
+      --color-secondary-hover: #5A9D8C;
+      --color-secondary-light: #EDF7F4;
+      --color-bg: #FAF8F5;
+      --color-surface: #FFFFFF;
+      --color-surface-warm: #F7F4F0;
+      --color-border: #E8E2DB;
+      --color-border-light: #F0EBE5;
+      --color-text-primary: #2D2A26;
+      --color-text-secondary: #7A746C;
+      --color-text-tertiary: #A69E94;
+      --color-text-inverse: #FFFFFF;
+      --color-success: #5BA88D;
+      --color-success-bg: #EDF7F4;
+      --color-warning: #D4943A;
+      --color-warning-bg: #FDF5EC;
+      --color-danger: #C75C5C;
+      --color-danger-bg: #FDF0F0;
+      --color-info: #6B8EC7;
+      --color-info-bg: #EFF4FB;
+      --color-crisis: #B8652A;
+      --color-crisis-bg: #FFF5EB;
+      --color-crisis-text: #6B3A15;
+      --color-crisis-border: #E8A45C;
+      --color-sidebar-bg: #2D2A26;
+      --color-sidebar-hover: #3D3833;
+      --color-sidebar-active: rgba(232,131,90,0.15);
+      --color-sidebar-text: #C4BFB8;
+      --color-sidebar-text-active: #E8835A;
+      --space-3xs: 2px; --space-2xs: 4px; --space-xs: 8px; --space-sm: 12px;
+      --space-md: 16px; --space-lg: 20px; --space-xl: 24px; --space-2xl: 32px;
+      --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px; --radius-xl: 20px;
+      --shadow-subtle: 0 1px 2px rgba(45,42,38,0.04);
+      --shadow-raised: 0 2px 8px rgba(45,42,38,0.06);
+      --shadow-floating: 0 4px 16px rgba(45,42,38,0.08);
+      --font-heading: "PingFang SC","Hiragino Sans GB","Microsoft YaHei","WenQuanYi Micro Hei",system-ui,sans-serif;
+      --font-body: "PingFang SC","Hiragino Sans GB","Microsoft YaHei","WenQuanYi Micro Hei",system-ui,sans-serif;
+      --font-mono: "Cascadia Code","Source Code Pro","JetBrains Mono",monospace;
+      --sidebar-width: 240px;
+      --header-height: 64px;
+      --transition-fast: 150ms ease-out;
+      --transition-standard: 250ms ease-in-out;
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: var(--font-body);
+      background: var(--color-bg);
+      color: var(--color-text-primary);
+      display:flex; min-height:100vh; overflow:hidden;
+    }
+
+    /* ===== 侧边栏 ===== */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--color-sidebar-bg);
+      display:flex; flex-direction:column;
+      position:fixed; top:0; left:0; bottom:0; z-index:100;
+      transition: transform var(--transition-standard);
+    }
+    .sidebar-brand {
+      padding: var(--space-lg) var(--space-xl);
+      display:flex; align-items:center; gap:var(--space-sm);
+      border-bottom:1px solid rgba(255,255,255,0.08);
+      min-height: var(--header-height);
+    }
+    .sidebar-brand-icon {
+      width:36px; height:36px; border-radius:var(--radius-md);
+      background:linear-gradient(135deg,var(--color-primary),#D4724B);
+      display:flex; align-items:center; justify-content:center;
+      color:#fff; font-weight:700; font-size:18px;
+    }
+    .sidebar-brand-text { color:#fff; font-size:17px; font-weight:600; letter-spacing:1px; }
+    .sidebar-brand-text span { color:var(--color-primary-soft); }
+    .sidebar-nav { flex:1; padding: var(--space-lg) 0; overflow-y:auto; }
+    .sidebar-section-label {
+      padding: var(--space-xs) var(--space-xl);
+      font-size:11px; font-weight:600; color:rgba(255,255,255,0.3);
+      text-transform:uppercase; letter-spacing:1.5px; margin-top:var(--space-lg);
+    }
+    .nav-item {
+      display:flex; align-items:center; gap:var(--space-md);
+      padding:11px var(--space-xl); cursor:pointer; transition:all var(--transition-fast);
+      color:var(--color-sidebar-text); font-size:14px; font-weight:400;
+      border-left:3px solid transparent;
+      text-decoration:none;
+    }
+    .nav-item:hover { background:var(--color-sidebar-hover); color:#fff; }
+    .nav-item.active { background:var(--color-sidebar-active); color:var(--color-sidebar-text-active); border-left-color:var(--color-primary); font-weight:500; }
+    .nav-item svg { width:20px; height:20px; flex-shrink:0; opacity:0.85; }
+    .nav-item.active svg { opacity:1; }
+    .nav-badge {
+      margin-left:auto; background:var(--color-danger); color:#fff;
+      font-size:11px; font-weight:600; padding:2px 7px; border-radius:10px; min-width:20px; text-align:center;
+    }
+    .sidebar-footer {
+      padding: var(--space-lg) var(--space-xl);
+      border-top:1px solid rgba(255,255,255,0.08);
+    }
+    .admin-info { display:flex; align-items:center; gap:var(--space-sm); }
+    .admin-avatar {
+      width:34px; height:34px; border-radius:50%;
+      background:linear-gradient(135deg,var(--color-secondary),#5A9D8C);
+      display:flex; align-items:center; justify-content:center; color:#fff; font-size:13px; font-weight:600;
+    }
+    .admin-name { color:rgba(255,255,255,0.85); font-size:13px; font-weight:500; }
+    .admin-role { color:rgba(255,255,255,0.4); font-size:11px; }
+
+    /* ===== 主区域 ===== */
+    .main-area {
+      flex:1; margin-left: var(--sidebar-width);
+      display:flex; flex-direction:column; min-height:100vh;
+    }
+    /* 顶栏 */
+    .topbar {
+      height: var(--header-height);
+      background: var(--color-surface);
+      border-bottom:1px solid var(--color-border-light);
+      display:flex; align-items:center; justify-content:space-between;
+      padding:0 var(--space-2xl); position:sticky; top:0; z-index:50;
+    }
+    .topbar-left { display:flex; align-items:center; gap:var(--space-lg); }
+    .page-title { font-size:18px; font-weight:600; color:var(--color-text-primary); }
+    .breadcrumb { font-size:13px; color:var(--color-text-tertiary); }
+    .breadcrumb span { color:var(--color-text-secondary); }
+    .topbar-right { display:flex; align-items:center; gap:var(--space-md); }
+    .topbar-search {
+      background:var(--color-surface-warm); border:1px solid var(--color-border);
+      border-radius:var(--radius-full); padding:8px 16px; font-size:13px;
+      width:220px; color:var(--color-text-primary); outline:none; transition:border var(--transition-fast);
+    }
+    .topbar-search:focus { border-color:var(--color-primary); }
+    .topbar-search::placeholder { color:var(--color-text-tertiary); }
+    .icon-btn {
+      width:36px; height:36px; border-radius:var(--radius-md);
+      border:1px solid var(--color-border); background:var(--color-surface);
+      display:flex; align-items:center; justify-content:center; cursor:pointer;
+      color:var(--color-text-secondary); transition:all var(--transition-fast); position:relative;
+    }
+    .icon-btn:hover { background:var(--color-surface-warm); color:var(--color-text-primary); }
+    .icon-btn .dot {
+      position:absolute; top:7px; right:7px; width:8px; height:8px;
+      background:var(--color-danger); border-radius:50%; border:1.5px solid var(--color-surface);
+    }
+
+    /* ===== 内容区 ===== */
+    .content { flex:1; padding:var(--space-2xl); overflow-y:auto; }
+
+    /* 页面容器 */
+    .page { display:none; animation:fadeIn 0.25s ease-out; }
+    .page.active { display:block; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(6px);} to{opacity:1;transform:translateY(0);} }
+
+    /* ===== 仪表盘 ===== */
+    .stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:var(--space-lg); margin-bottom:var(--space-2xl); }
+    .stat-card {
+      background:var(--color-surface); border:1px solid var(--color-border);
+      border-radius:var(--radius-lg); padding:var(--space-lg) var(--space-xl);
+      display:flex; align-items:flex-start; justify-content:space-between;
+      transition:box-shadow var(--transition-standard),transform var(--transition-standard);
+    }
+    .stat-card:hover { box-shadow:var(--shadow-raised); transform:translateY(-2px); }
+    .stat-info h3 { font-size:13px; font-weight:500; color:var(--color-text-secondary); margin-bottom:var(--space-xs); }
+    .stat-info .stat-value { font-size:28px; font-weight:700; color:var(--color-text-primary); line-height:1.2; }
+    .stat-info .stat-trend { font-size:12px; font-weight:500; margin-top:var(--space-xs); display:flex; align-items:center; gap:4px; }
+    .stat-trend.up { color:var(--color-success); }
+    .stat-trend.down { color:var(--color-danger); }
+    .stat-icon {
+      width:48px; height:48px; border-radius:var(--radius-md); display:flex;
+      align-items:center; justify-content:center; flex-shrink:0;
+    }
+    .stat-icon.orange { background:var(--color-primary-light); color:var(--color-primary); }
+    .stat-icon.green { background:var(--color-secondary-light); color:var(--color-secondary); }
+    .stat-icon.amber { background:var(--color-warning-bg); color:var(--color-warning); }
+    .stat-icon.red { background:var(--color-danger-bg); color:var(--color-danger); }
+
+    .dashboard-grid { display:grid; grid-template-columns:2fr 1fr; gap:var(--space-2xl); }
+    .card {
+      background:var(--color-surface); border:1px solid var(--color-border);
+      border-radius:var(--radius-lg); overflow:hidden;
+    }
+    .card-header {
+      padding:var(--space-lg) var(--space-xl);
+      border-bottom:1px solid var(--color-border-light);
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .card-title { font-size:15px; font-weight:600; color:var(--color-text-primary); }
+    .card-action {
+      font-size:13px; color:var(--color-primary); cursor:pointer; font-weight:500;
+      background:none; border:none; transition:opacity var(--transition-fast);
+    }
+    .card-action:hover { opacity:0.7; }
+    .card-body { padding:var(--space-xl); }
+
+    /* 简易图表 - 用CSS绘制 */
+    .chart-bar-group { display:flex; align-items:flex-end; gap:var(--space-sm); height:180px; padding-top:var(--space-xl); }
+    .chart-bar-wrap { flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; height:100%; justify-content:flex-end; }
+    .chart-bar {
+      width:100%; max-width:40px; border-radius:6px 6px 2px 2px;
+      transition:height 0.6s cubic-bezier(0.34,1.56,0.64,1); position:relative;
+    }
+    .chart-bar-label { font-size:11px; color:var(--color-text-tertiary); font-weight:500; }
+    .chart-line-area {
+      height:200px; position:relative; padding:var(--space-md) 0;
+      display:flex; align-items:flex-end;
+    }
+    .chart-line-svg { width:100%; height:100%; }
+    .chart-tooltip {
+      position:absolute; background:var(--color-sidebar-bg); color:#fff;
+      padding:4px 10px; border-radius:var(--radius-sm); font-size:11px;
+      pointer-events:none; opacity:0; transition:opacity 0.15s;
+    }
+
+    /* 预警列表 */
+    .alert-list { list-style:none; }
+    .alert-item {
+      display:flex; align-items:flex-start; gap:var(--space-md);
+      padding:var(--space-md) 0; border-bottom:1px solid var(--color-border-light);
+      transition:background var(--transition-fast);
+    }
+    .alert-item:last-child { border-bottom:none; }
+    .alert-item:hover { background:var(--color-surface-warm); margin:0 calc(-1*var(--space-xl)); padding:var(--space-md) var(--space-xl); border-radius:var(--radius-md); }
+    .alert-level {
+      width:8px; height:8px; border-radius:50%; flex-shrink:0; margin-top:6px;
+    }
+    .alert-level.high { background:var(--color-crisis); box-shadow:0 0 0 3px var(--color-crisis-bg); }
+    .alert-level.medium { background:var(--color-warning); box-shadow:0 0 0 3px var(--color-warning-bg); }
+    .alert-level.low { background:var(--color-info); box-shadow:0 0 0 3px var(--color-info-bg); }
+    .alert-content { flex:1; min-width:0; }
+    .alert-title { font-size:14px; font-weight:500; color:var(--color-text-primary); margin-bottom:2px; }
+    .alert-desc { font-size:12px; color:var(--color-text-secondary); line-height:1.5; }
+    .alert-meta { display:flex; align-items:center; gap:var(--space-md); margin-top:4px; }
+    .alert-time { font-size:11px; color:var(--color-text-tertiary); }
+    .alert-user { font-size:11px; color:var(--color-primary); font-weight:500; }
+    .alert-status {
+      font-size:11px; padding:2px 10px; border-radius:var(--radius-full); font-weight:500; white-space:nowrap; flex-shrink:0;
+    }
+    .alert-status.pending { background:var(--color-warning-bg); color:var(--color-warning); }
+    .alert-status.handling { background:var(--color-info-bg); color:var(--color-info); }
+    .alert-status.resolved { background:var(--color-success-bg); color:var(--color-success); }
+
+    /* ===== 表格 ===== */
+    .table-toolbar {
+      display:flex; align-items:center; justify-content:space-between;
+      margin-bottom:var(--space-lg); flex-wrap:wrap; gap:var(--space-md);
+    }
+    .table-filters { display:flex; align-items:center; gap:var(--space-sm); }
+    .filter-select {
+      padding:8px 14px; border:1px solid var(--color-border);
+      border-radius:var(--radius-md); font-size:13px; color:var(--color-text-primary);
+      background:var(--color-surface); cursor:pointer; outline:none; min-width:120px;
+    }
+    .filter-select:focus { border-color:var(--color-primary); }
+    .btn {
+      display:inline-flex; align-items:center; gap:6px; padding:9px 18px;
+      border-radius:var(--radius-md); font-size:13px; font-weight:500;
+      cursor:pointer; border:none; transition:all var(--transition-fast); white-space:nowrap;
+    }
+    .btn-primary { background:var(--color-primary); color:#fff; }
+    .btn-primary:hover { background:var(--color-primary-hover); }
+    .btn-secondary { background:transparent; color:var(--color-primary); border:1.5px solid var(--color-primary); }
+    .btn-secondary:hover { background:var(--color-primary-light); }
+    .btn-ghost { background:transparent; color:var(--color-text-secondary); border:1px solid var(--color-border); }
+    .btn-ghost:hover { background:var(--color-surface-warm); color:var(--color-text-primary); }
+    .btn-sm { padding:6px 12px; font-size:12px; }
+
+    .data-table { width:100%; border-collapse:collapse; }
+    .data-table thead th {
+      padding:12px 16px; text-align:left; font-size:12px; font-weight:600;
+      color:var(--color-text-secondary); text-transform:uppercase; letter-spacing:0.5px;
+      background:var(--color-surface-warm); border-bottom:1px solid var(--color-border);
+    }
+    .data-table thead th:first-child { border-radius:var(--radius-md) 0 0 0; }
+    .data-table thead th:last-child { border-radius:0 var(--radius-md) 0 0; }
+    .data-table tbody td {
+      padding:14px 16px; font-size:13px; color:var(--color-text-primary);
+      border-bottom:1px solid var(--color-border-light); vertical-align:middle;
+    }
+    .data-table tbody tr { transition:background var(--transition-fast); }
+    .data-table tbody tr:hover { background:var(--color-surface-warm); }
+    .data-table tbody tr:last-child td { border-bottom:none; }
+    .user-cell { display:flex; align-items:center; gap:var(--space-sm); }
+    .user-avatar-sm {
+      width:32px; height:32px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center; color:#fff; font-size:12px; font-weight:600;
+    }
+    .user-name { font-weight:500; }
+    .user-id { font-size:11px; color:var(--color-text-tertiary); }
+    .status-tag {
+      display:inline-flex; align-items:center; gap:4px; padding:4px 10px;
+      border-radius:var(--radius-full); font-size:12px; font-weight:500;
+    }
+    .status-tag.active { background:var(--color-success-bg); color:var(--color-success); }
+    .status-tag.inactive { background:var(--color-surface-warm); color:var(--color-text-tertiary); }
+    .status-tag.warning { background:var(--color-warning-bg); color:var(--color-warning); }
+    .status-dot { width:6px; height:6px; border-radius:50%; background:currentColor; }
+    .action-btns { display:flex; gap:6px; }
+    .action-link { font-size:13px; color:var(--color-primary); cursor:pointer; font-weight:500; background:none;border:none;padding:4px 8px; border-radius:4px; transition:background var(--transition-fast); }
+    .action-link:hover { background:var(--color-primary-light); }
+
+    /* 分页 */
+    .pagination { display:flex; align-items:center; justify-content:space-between; padding:var(--space-lg) 0 0; }
+    .pagination-info { font-size:13px; color:var(--color-text-secondary); }
+    .pagination-btns { display:flex; gap:4px; }
+    .page-btn {
+      width:34px; height:34px; border:1px solid var(--color-border); border-radius:var(--radius-sm);
+      background:var(--color-surface); font-size:13px; color:var(--color-text-primary);
+      cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all var(--transition-fast);
+    }
+    .page-btn:hover { border-color:var(--color-primary); color:var(--color-primary); }
+    .page-btn.active { background:var(--color-primary); color:#fff; border-color:var(--color-primary); }
+    .page-btn.disabled { opacity:0.4; cursor:not-allowed; }
+
+    /* ===== 树洞审核 ===== */
+    .review-card {
+      border:1px solid var(--color-border); border-radius:var(--radius-lg);
+      padding:var(--space-xl); margin-bottom:var(--space-lg);
+      background:var(--color-surface); transition:box-shadow var(--transition-standard);
+    }
+    .review-card:hover { box-shadow:var(--shadow-raised); }
+    .review-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:var(--space-md); }
+    .review-anonymous { display:flex; align-items:center; gap:var(--space-sm); }
+    .anonymous-mask {
+      width:32px; height:32px; border-radius:50%; background:var(--color-surface-warm);
+      display:flex; align-items:center; justify-content:center;
+    }
+    .review-meta { font-size:12px; color:var(--color-text-tertiary); }
+    .review-tag {
+      font-size:11px; padding:3px 10px; border-radius:var(--radius-full); font-weight:500;
+      background:var(--color-warning-bg); color:var(--color-warning);
+    }
+    .review-body { font-size:14px; line-height:1.7; color:var(--color-text-primary); margin-bottom:var(--space-md); }
+    .review-tags { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:var(--space-md); }
+    .emotion-tag { font-size:11px; padding:3px 10px; border-radius:var(--radius-full); background:var(--color-surface-warm); color:var(--color-text-secondary); }
+    .review-actions { display:flex; gap:var(--space-sm); justify-content:flex-end; }
+
+    /* ===== 危机预警页 ===== */
+    .crisis-header-stats { display:flex; gap:var(--space-lg); margin-bottom:var(--space-2xl); }
+    .crisis-stat {
+      flex:1; border-radius:var(--radius-lg); padding:var(--space-lg) var(--space-xl);
+      display:flex; align-items:center; gap:var(--space-lg);
+    }
+    .crisis-stat.urgent { background:var(--color-crisis-bg); border:1px solid var(--color-crisis-border); }
+    .crisis-stat.normal { background:var(--color-info-bg); border:1px solid var(--color-info); }
+    .crisis-stat.resolved-stat { background:var(--color-success-bg); border:1px solid var(--color-success); }
+    .crisis-stat-num { font-size:32px; font-weight:700; line-height:1; }
+    .crisis-stat.urgent .crisis-stat-num { color:var(--color-crisis); }
+    .crisis-stat.normal .crisis-stat-num { color:var(--color-info); }
+    .crisis-stat.resolved-stat .crisis-stat-num { color:var(--color-success); }
+    .crisis-stat-label { font-size:13px; color:var(--color-text-secondary); margin-top:4px; }
+
+    /* ===== AI Agent配置 ===== */
+    .agent-config-card {
+      border:1px solid var(--color-border); border-radius:var(--radius-lg);
+      padding:var(--space-xl); margin-bottom:var(--space-lg);
+      background:var(--color-surface);
+    }
+    .agent-config-header { display:flex; align-items:center; gap:var(--space-md); margin-bottom:var(--space-lg); }
+    .agent-avatar-lg { width:44px; height:44px; border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center; color:#fff; font-size:16px; font-weight:700; }
+    .agent-name-lg { font-size:16px; font-weight:600; }
+    .agent-desc-lg { font-size:13px; color:var(--color-text-secondary); }
+    .config-form-row { display:grid; grid-template-columns:140px 1fr; gap:var(--space-sm) var(--space-lg); align-items:center; margin-bottom:var(--space-md); }
+    .config-label { font-size:13px; font-weight:500; color:var(--color-text-secondary); }
+    .config-input {
+      padding:10px 14px; border:1px solid var(--color-border); border-radius:var(--radius-md);
+      font-size:13px; color:var(--color-text-primary); background:var(--color-surface); outline:none; width:100%; max-width:360px;
+    }
+    .config-input:focus { border-color:var(--color-primary); }
+    .config-slider-container { display:flex; align-items:center; gap:var(--space-md); }
+    .config-slider { flex:1; max-width:300px; height:6px; -webkit-appearance:none; appearance:none; background:var(--color-border-light); border-radius:3px; outline:none; }
+    .config-slider::-webkit-slider-thumb { -webkit-appearance:none; width:18px; height:18px; border-radius:50%; background:var(--color-primary); cursor:pointer; }
+    .slider-value { font-size:13px; font-weight:600; color:var(--color-primary); min-width:36px; text-align:right; font-family:var(--font-mono); }
+
+    /* ===== 系统设置 ===== */
+    .settings-section { margin-bottom:var(--space-2xl); }
+    .settings-section-title { font-size:15px; font-weight:600; color:var(--color-text-primary); margin-bottom:var(--space-lg); padding-bottom:var(--space-sm); border-bottom:1px solid var(--color-border-light); }
+    .settings-row {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:var(--space-md) 0; border-bottom:1px solid var(--color-border-light);
+    }
+    .settings-row:last-child { border-bottom:none; }
+    .settings-info h4 { font-size:14px; font-weight:500; color:var(--color-text-primary); }
+    .settings-info p { font-size:12px; color:var(--color-text-tertiary); margin-top:2px; }
+    .toggle-switch { width:44px; height:24px; background:var(--color-border); border-radius:12px; position:relative; cursor:pointer; transition:background var(--transition-fast); flex-shrink:0; }
+    .toggle-switch.on { background:var(--color-primary); }
+    .toggle-switch::after { content:''; position:absolute; width:18px; height:18px; border-radius:50%; background:#fff; top:3px; left:3px; transition:transform var(--transition-fast); box-shadow:0 1px 3px rgba(0,0,0,0.15); }
+    .toggle-switch.on::after { transform:translateX(20px); }
+
+    /* ===== 操作日志 ===== */
+    .log-item { display:flex; gap:var(--space-md); padding:var(--space-md) 0; border-bottom:1px solid var(--color-border-light); }
+    .log-time-col { width:160px; flex-shrink:0; font-size:12px; color:var(--color-text-tertiary); font-family:var(--font-mono); padding-top:2px; }
+    .log-operator { width:80px; flex-shrink:0; font-size:13px; font-weight:500; color:var(--color-text-primary); padding-top:2px; }
+    .log-action-col { flex:1; font-size:13px; color:var(--color-text-primary); padding-top:2px; }
+    .log-target { color:var(--color-primary); font-weight:500; }
+    .log-type {
+      display:inline-block; font-size:11px; padding:2px 8px; border-radius:var(--radius-sm);
+      font-weight:500; margin-right:6px; vertical-align:middle;
+    }
+    .log-type.create { background:var(--color-success-bg); color:var(--color-success); }
+    .log-type.update { background:var(--color-info-bg); color:var(--color-info); }
+    .log-type.delete { background:var(--color-danger-bg); color:var(--color-danger); }
+    .log-type.alert { background:var(--color-crisis-bg); color:var(--color-crisis); }
+
+    /* ===== 测评内容编辑器 ===== */
+    .editor-layout { display:grid; grid-template-columns:380px 1fr; gap:var(--space-2xl); }
+    .editor-sidebar { background:var(--color-surface); border:1px solid var(--color-border); border-radius:var(--radius-lg); padding:var(--space-lg); height:fit-content; position:sticky; top:calc(var(--header-height) + var(--space-xl)); }
+    .editor-main { min-width:0; }
+    .editor-section { margin-bottom:var(--space-2xl); }
+    .editor-section-title { font-size:16px; font-weight:700; color:var(--color-text-primary); margin-bottom:var(--space-md); display:flex; align-items:center; gap:var(--space-sm); }
+    .editor-section-title .num-badge { display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; border-radius:50%; background:var(--color-primary); color:#fff; font-size:12px; font-weight:700; }
+    .editor-field { margin-bottom:var(--space-md); }
+    .editor-label { display:block; font-size:13px; font-weight:600; color:var(--color-text-secondary); margin-bottom:6px; }
+    .editor-label .required { color:var(--color-danger); margin-left:2px; }
+    .editor-input, .editor-textarea, .editor-select {
+      width:100%; padding:10px 14px; border:1px solid var(--color-border);
+      border-radius:var(--radius-md); font-size:14px; color:var(--color-text-primary);
+      background:var(--color-surface); outline:none; transition:border-color var(--transition-fast);
+    }
+    .editor-input:focus, .editor-textarea:focus, .editor-select:focus { border-color:var(--color-primary); box-shadow:0 0 0 3px rgba(232,131,90,0.1); }
+    .editor-textarea { resize:vertical; min-height:80px; line-height:1.55; }
+    .editor-select { cursor:pointer; }
+
+    /* 题目卡片 */
+    .question-card {
+      background:var(--color-surface); border:1px solid var(--color-border);
+      border-radius:var(--radius-lg); padding:var(--space-lg); margin-bottom:var(--space-md);
+      transition:all var(--transition-fast); position:relative;
+    }
+    .question-card:hover { box-shadow:var(--shadow-raised); border-color:var(--color-primary-soft); }
+    .question-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:var(--space-md); }
+    .question-num { display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:50%; background:var(--color-primary-light); color:var(--color-primary); font-size:13px; font-weight:700; flex-shrink:0; }
+    .question-title-input { flex:1; margin-left:var(--space-sm); font-size:15px; font-weight:600; padding:8px 12px; border:1px solid transparent; border-radius:var(--radius-md); outline:none; color:var(--color-text-primary); background:transparent; transition:all var(--transition-fast); }
+    .question-title-input:focus { border-color:var(--color-primary); background:var(--color-surface); }
+    .question-actions { display:flex; gap:4px; }
+    .q-action-btn { width:30px; height:30px; border:1px solid var(--color-border-light); border-radius:var(--radius-sm); background:var(--color-surface); cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--color-text-tertiary); transition:all var(--transition-fast); }
+    .q-action-btn:hover { border-color:var(--color-primary); color:var(--color-primary); }
+    .q-action-btn.danger:hover { border-color:var(--color-danger); color:var(--color-danger); }
+    .q-action-btn svg { width:14px; height:14px; }
+
+    /* 选项编辑 */
+    .options-editor { margin-top:var(--space-md); padding-left:36px; }
+    .option-row { display:flex; align-items:center; gap:var(--space-sm); margin-bottom:8px; }
+    .option-score { width:48px; text-align:center; font-size:12px; font-weight:700; padding:4px 6px; border:1px solid var(--color-border); border-radius:6px; font-family:var(--font-mono); background:var(--color-bg); }
+    .option-score:focus { border-color:var(--color-primary); outline:none; }
+    .option-text { flex:1; font-size:14px; padding:7px 10px; border:1px solid var(--color-border-light); border-radius:8px; outline:none; color:var(--color-text-primary); background:transparent; transition:border-color var(--transition-fast); }
+    .option-text:focus { border-color:var(--color-primary); background:#FFFEFA; }
+
+    /* 计分规则面板 */
+    .scoring-rules-panel {
+      background:var(--color-surface); border:1px solid var(--color-border);
+      border-radius:var(--radius-lg); overflow:hidden;
+    }
+    .scoring-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:var(--space-md) var(--space-lg); background:linear-gradient(135deg,#FDF0EB,#F5E6D8);
+      border-bottom:1px solid var(--color-border);
+    }
+    .scoring-header h3 { font-size:16px; font-weight:700; color:var(--color-primary); }
+    .scoring-body { padding:var(--space-lg); }
+
+    /* Likert 计分可视化 */
+    .likert-visual { margin-bottom:var(--space-lg); }
+    .likert-title { font-size:14px; font-weight:600; color:var(--color-text-secondary); margin-bottom:var(--space-sm); }
+    .likert-bar-row { display:flex; align-items:center; gap:6px; margin-bottom:10px; }
+    .likert-score-tag { width:40px; text-align:center; font-size:12px; font-weight:700; padding:3px 0; border-radius:6px; flex-shrink:0; font-family:var(--font-mono); }
+    .likert-score-desc { font-size:12px; color:var(--color-text-tertiary); width:100px; flex-shrink:0; }
+    .likert-bar-track { flex:1; height:22px; background:var(--color-bg); border-radius:11px; overflow:hidden; position:relative; }
+    .likert-bar-fill { height:100%; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:600; color:#fff; transition:width 0.5s ease; }
+
+    /* 维度映射 */
+    .dimension-map { margin-top:var(--space-lg); }
+    .dim-map-title { font-size:14px; font-weight:600; color:var(--color-text-secondary); margin-bottom:var(--space-sm); }
+    .dim-map-table { width:100%; border-collapse:collapse; font-size:13px; }
+    .dim-map-table th { text-align:left; padding:8px 12px; background:var(--color-bg); font-weight:600; color:var(--color-text-secondary); border-bottom:2px solid var(--color-border); font-size:12px; }
+    .dim-map-table td { padding:8px 12px; border-bottom:1px solid var(--color-border-light); color:var(--color-text-primary); }
+    .dim-range { font-family:var(--font-mono); font-weight:600; font-size:12px; }
+    .dim-level { display:inline-block; padding:2px 10px; border-radius:var(--radius-full); font-size:11px; font-weight:600; }
+
+    /* 分数区间卡片 */
+    .range-cards { display:grid; grid-template-columns:repeat(4,1fr); gap:var(--space-sm); margin-top:var(--space-md); }
+    .range-card { padding:var(--space-sm) var(--space-md); border-radius:var(--radius-md); text-align:center; border:1px solid; }
+    .range-card .range-val { font-size:20px; font-weight:800; font-family:var(--font-mono); display:block; margin-bottom:2px; }
+    .range-card .range-label { font-size:11px; font-weight:500; }
+
+    /* AI 分析中心 */
+    .ai-center-grid { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-2xl); }
+    .ai-feature-card {
+      background:var(--color-surface); border:1px solid var(--color-border);
+      border-radius:var(--radius-lg); padding:var(--space-xl); transition:all var(--transition-fast);
+    }
+    .ai-feature-card:hover { box-shadow:var(--shadow-floating); border-color:var(--color-primary-soft); }
+    .ai-feature-icon { width:52px; height:52px; border-radius:var(--radius-lg); display:flex; align-items:center; justify-content:center; margin-bottom:var(--space-md); }
+    .ai-feature-icon svg { width:26px; height:26px; stroke-width:1.8; }
+    .ai-feature-title { font-size:17px; font-weight:700; color:var(--color-text-primary); margin-bottom:var(--space-sm); }
+    .ai-feature-desc { font-size:14px; line-height:1.6; color:var(--color-text-secondary); margin-bottom:var(--space-md); }
+    .ai-status-badge { display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:var(--radius-full); font-size:12px; font-weight:600; }
+    .ai-status-dot { width:8px; height:8px; border-radius:50%; }
+    .ai-config-row { display:flex; align-items:center; gap:var(--space-md); margin-top:var(--space-md); padding:var(--space-md); background:var(--color-bg); border-radius:var(--radius-md); }
+    .ai-config-row label { font-size:13px; color:var(--color-text-secondary); white-space:nowrap; }
+    .ai-config-row select, .ai-config-row input { padding:6px 10px; border:1px solid var(--color-border); border-radius:8px; font-size:13px; outline:none; background:var(--color-surface); }
+    .ai-preview-area {
+      background:var(--color-surface); border:1px solid var(--color-border);
+      border-radius:var(--radius-lg); padding:var(--space-xl); margin-top:var(--space-2xl);
+    }
+    .ai-preview-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:var(--space-md); }
+    .ai-preview-title { font-size:16px; font-weight:700; color:var(--color-text-primary); }
+    .ai-preview-content { font-size:14px; line-height:1.75; color:var(--color-text-secondary); padding:var(--space-md); background:var(--color-bg); border-radius:var(--radius-md); border-left:3px solid var(--color-primary); }
+
+    /* 上传区域 */
+    .upload-zone {
+      border:2px dashed var(--color-border); border-radius:var(--radius-lg);
+      padding:var(--space-2xl) var(--space-lg); text-align:center;
+      cursor:pointer; transition:all var(--transition-fast); margin-bottom:var(--space-lg);
+      background:var(--color-surface);
+    }
+    .upload-zone:hover { border-color:var(--color-primary); background:var(--color-primary-light); }
+    .upload-zone-icon { width:48px; height:48px; margin:0 auto var(--space-sm); color:var(--color-text-tertiary); }
+    .upload-zone-text { font-size:15px; color:var(--color-text-secondary); margin-bottom:4px; }
+    .upload-zone-hint { font-size:12px; color:var(--color-text-tertiary); }
+
+    /* ===== 响应式 ===== */
+    @media (max-width: 1200px) {
+      .stats-row { grid-template-columns:repeat(2,1fr); }
+      .dashboard-grid { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+<!-- ==================== 侧边栏 ==================== -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="sidebar-brand-icon">了</div>
+    <div class="sidebar-brand-text">了然<span>管理台</span></div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="sidebar-section-label">概览</div>
+    <a class="nav-item active" data-page="dashboard" onclick="switchPage('dashboard')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      数据仪表盘
+    </a>
+    <a class="nav-item" data-page="users" onclick="switchPage('users')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      用户管理
+      <span class="nav-badge">128</span>
+    </a>
+
+    <div class="sidebar-section-label">内容</div>
+    <a class="nav-item" data-page="assessments" onclick="switchPage('assessments')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      测评管理
+    </a>
+    <a class="nav-item" data-page="assess-editor" onclick="switchPage('assess-editor')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      测评内容编辑
+      <span class="nav-badge" style="background:var(--color-primary);">New</span>
+    </a>
+    <a class="nav-item" data-page="ai-analysis" onclick="switchPage('ai-analysis')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 014 4v2a4 4 0 01-8 0V6a4 4 0 014-4z"/><path d="M16 14a4 4 1 1-8 0"/><path d="M12 18v4"/><path d="M8 22h8"/><polyline points="10 9 15 4 20 9"/></svg>
+      AI 分析中心
+    </a>
+    <a class="nav-item" data-page="treehole" onclick="switchPage('treehole')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c4-4 8-7.5 8-12a8 8 0 1 0-16 0c0 4.5 4 8 8 12z"/><circle cx="12" cy="10" r="3"/></svg>
+      树洞审核
+      <span class="nav-badge">5</span>
+    </a>
+    <a class="nav-item" data-page="ai-agents" onclick="switchPage('ai-agents')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 0 1 4 4v2a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z"/><path d="M16 14a4 4 0 1 1-8 0"/><path d="M12 18v4"/><path d="M8 22h8"/></svg>
+      AI Agent 配置
+    </a>
+
+    <div class="sidebar-section-label">安全</div>
+    <a class="nav-item" data-page="crisis" onclick="switchPage('crisis')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      危机预警
+      <span class="nav-badge">3</span>
+    </a>
+
+    <div class="sidebar-section-label">系统</div>
+    <a class="nav-item" data-page="settings" onclick="switchPage('settings')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      系统设置
+    </a>
+    <a class="nav-item" data-page="logs" onclick="switchPage('logs')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      操作日志
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="admin-info">
+      <div class="admin-avatar" id="adminAvatarDisplay">管</div>
+      <div>
+        <div class="admin-name" id="adminNameDisplay">管理员</div>
+        <div class="admin-role">超级管理员</div>
+      </div>
+    </div>
+    <button onclick="adminLogout()" style="margin-top:12px;width:100%;padding:8px;
+      background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);
+      border-radius:8px;color:rgba(255,255,255,0.6);font-size:12px;cursor:pointer;">
+      退出登录</button>
+  </div>
+</aside>
+
+<!-- ==================== 主区域 ==================== -->
+<div class="main-area">
+  <!-- 顶栏 -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="page-title" id="pageTitle">数据仪表盘</div>
+      <div class="breadcrumb">了然管理台 / <span id="breadcrumbCurrent">数据仪表盘</span></div>
+    </div>
+    <div class="topbar-right">
+      <input type="text" class="topbar-search" placeholder="搜索用户、测评、内容...">
+      <button class="icon-btn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="dot"></span>
+      </button>
+      <button class="icon-btn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- 内容区 -->
+  <main class="content">
+
+    <!-- ========== 页面1：数据仪表盘 ========== -->
+    <div class="page active" id="page-dashboard">
+      <!-- 统计卡片 -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-info">
+            <h3>总用户数</h3>
+            <div class="stat-value">12,846</div>
+            <div class="stat-trend up">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
+              +12.5% 较上周
+            </div>
+          </div>
+          <div class="stat-icon orange">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-info">
+            <h3>今日活跃</h3>
+            <div class="stat-value">2,341</div>
+            <div class="stat-trend up">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
+              +8.3% 较昨日
+            </div>
+          </div>
+          <div class="stat-icon green">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-info">
+            <h3>测评完成数</h3>
+            <div class="stat-value">8,567</div>
+            <div class="stat-trend up">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
+              +23.1% 本月
+            </div>
+          </div>
+          <div class="stat-icon amber">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-info">
+            <h3>待处理预警</h3>
+            <div class="stat-value" style="color:var(--color-crisis)">3</div>
+            <div class="stat-trend down">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+              -2 较昨日
+            </div>
+          </div>
+          <div class="stat-icon red">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- 图表区域 -->
+      <div class="dashboard-grid">
+        <!-- 用户活跃趋势 -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">近7日用户活跃趋势</div>
+            <button class="card-action">查看详情 →</button>
+          </div>
+          <div class="card-body">
+            <div class="chart-bar-group" id="activeChart">
+              <div class="chart-bar-wrap"><div class="chart-bar" style="height:45%;background:var(--color-primary-light)"></div><span class="chart-bar-label">周一</span></div>
+              <div class="chart-bar-wrap"><div class="chart-bar" style="height:62%;background:var(--color-primary-soft)"></div><span class="chart-bar-label">周二</span></div>
+              <div class="chart-bar-wrap"><div class="chart-bar" style="height:58%;background:var(--color-primary-soft)"></div><span class="chart-bar-label">周三</span></div>
+              <div class="chart-bar-wrap"><div class="chart-bar" style="height:75%;background:var(--color-primary)"></div><span class="chart-bar-label">周四</span></div>
+              <div class="chart-bar-wrap"><div class="chart-bar" style="height:88%;background:var(--color-primary)"></div><span class="chart-bar-label">周五</span></div>
+              <div class="chart-bar-wrap"><div class="chart-bar" style="height:95%;background:var(--color-primary-hover)"></div><span class="chart-bar-label">周六</span></div>
+              <div class="chart-bar-wrap"><div class="chart-bar" style="height:70%;background:var(--color-primary)"></div><span class="chart-bar-label">周日</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 最新危机预警 -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">最新危机预警</div>
+            <button class="card-action" onclick="switchPage('crisis')">全部 →</button>
+          </div>
+          <div class="card-body" style="padding:var(--space-lg) var(--space-xl);">
+            <ul class="alert-list">
+              <li class="alert-item">
+                <span class="alert-level high"></span>
+                <div class="alert-content">
+                  <div class="alert-title">用户在对话中表达自伤意念</div>
+                  <div class="alert-desc">AI对话检测到高风险关键词，建议立即介入</div>
+                  <div class="alert-meta">
+                    <span class="alert-time">10分钟前</span>
+                    <span class="alert-user">用户****7823</span>
+                    <span class="alert-status pending">待处理</span>
+                  </div>
+                </div>
+              </li>
+              <li class="alert-item">
+                <span class="alert-level medium"></span>
+                <div class="alert-content">
+                  <div class="alert-title">抑郁量表评分持续偏高</div>
+                  <div class="alert-desc">PHQ-9得分22分，连续3次测评呈上升趋势</div>
+                  <div class="alert-meta">
+                    <span class="alert-time">32分钟前</span>
+                    <span class="alert-user">用户****3156</span>
+                    <span class="alert-status handling">处理中</span>
+                  </div>
+                </div>
+              </li>
+              <li class="alert-item">
+                <span class="alert-level low"></span>
+                <div class="alert-content">
+                  <div class="alert-title">树洞内容提及孤独感加剧</div>
+                  <div class="alert-desc">匿名发布内容情感分析显示消极情绪指数上升</div>
+                  <div class="alert-meta">
+                    <span class="alert-time">1小时前</span>
+                    <span class="alert-user">匿名****91</span>
+                    <span class="alert-status resolved">已关注</span>
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- 测评分布 & 对话量 -->
+      <div class="dashboard-grid" style="margin-top:var(--space-2xl);">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">热门测评 TOP 5</div>
+            <button class="card-action" onclick="switchPage('assessments')">查看全部 →</button>
+          </div>
+          <div class="card-body">
+            <table class="data-table">
+              <thead><tr><th>排名</th><th>量表名称</th><th>完成次数</th><th>平均分</th><th>趋势</th></tr></thead>
+              <tbody>
+                <tr><td style="font-weight:700;color:var(--color-primary)">1</td><td class="user-name">PHQ-9 抑郁自评</td><td>2,847</td><td style="font-weight:600;font-family:var(--font-mono)">12.3</td><td><span class="stat-trend up" style="font-size:12px">↑ 15%</span></td></tr>
+                <tr><td style="font-weight:600;color:var(--color-primary)">2</td><td class="user-name">GAD-7 焦虑自评</td><td>2,156</td><td style="font-weight:600;font-family:var(--font-mono)">9.7</td><td><span class="stat-trend up" style="font-size:12px">↑ 8%</span></td></tr>
+                <tr><td style="font-weight:600;color:var(--color-text-secondary)">3</td><td class="user-name">PSS 感知压力</td><td>1,423</td><td style="font-weight:600;font-family:var(--font-mono)">18.5</td><td><span class="stat-trend up" style="font-size:12px">↑ 22%</span></td></tr>
+                <tr><td style="font-weight:600;color:var(--color-text-secondary)">4</td><td class="user-name">Rosenberg 自尊</td><td>987</td><td style="font-weight:600;font-family:var(--font-mono)">28.1</td><td><span class="stat-trend down" style="font-size:12px">↓ 3%</span></td></tr>
+                <tr><td style="font-weight:600;color:var(--color-text-secondary)">5</td><td class="user-name">SWLS 生活满意度</td><td>756</td><td style="font-weight:600;font-family:var(--font-mono)">19.2</td><td><span class="stat-trend up" style="font-size:12px">↑ 5%</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">AI 对话量统计</div>
+          </div>
+          <div class="card-body">
+            <div style="display:flex;flex-direction:column;gap:var(--space-md);">
+              <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                  <span style="font-size:13px;color:var(--color-text-secondary)">青年知音（青少年）</span>
+                  <span style="font-size:13px;font-weight:600;font-family:var(--font-mono)">4,231</span>
+                </div>
+                <div style="height:8px;background:var(--color-border-light);border-radius:4px;overflow:hidden;"><div style="width:72%;height:100%;background:var(--color-primary);border-radius:4px;"></div></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:13px;color:var(--color-text-secondary)">通用助手</span><span style="font-size:13px;font-weight:600;font-family:var(--font-mono)">3,856</span></div>
+                <div style="height:8px;background:var(--color-border-light);border-radius:4px;overflow:hidden;"><div style="width:65%;height:100%;background:var(--color-secondary);border-radius:4px;"></div></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:13px;color:var(--color-text-secondary)">情绪导航员</span><span style="font-size:13px;font-weight:600;font-family:var(--font-mono)">2,147</span></div>
+                <div style="height:8px;background:var(--color-border-light);border-radius:4px;overflow:hidden;"><div style="width:37%;height:100%;background:var(--color-chart-3);border-radius:4px;"></div></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:13px;color:var(--color-text-secondary)">认知重构师</span><span style="font-size:13px;font-weight:600;font-family:var(--font-mono)">1,892</span></div>
+                <div style="height:8px;background:var(--color-border-light);border-radius:4px;overflow:hidden;"><div style="width:32%;height:100%;background:var(--color-chart-4);border-radius:4px;"></div></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:13px;color:var(--color-text-secondary)">正念陪伴者</span><span style="font-size:13px;font-weight:600;font-family:var(--font-mono)">1,234</span></div>
+                <div style="height:8px;background:var(--color-border-light);border-radius:4px;overflow:hidden;"><div style="width:21%;height:100%;background:var(--color-chart-5);border-radius:4px;"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== 页面2：用户管理 ========== -->
+    <div class="page" id="page-users">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">用户列表</div>
+          <button class="btn btn-primary btn-sm">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            导出数据
+          </button>
+        </div>
+        <div class="card-body">
+          <div class="table-toolbar">
+            <div class="table-filters">
+              <select class="filter-select"><option>所有状态</option><option>活跃</option><option>静默</option><option>风险关注</option></select>
+              <select class="filter-select"><option>注册时间</option><option>最近活跃</option><option>测评次数</option></select>
+              <input type="text" class="topbar-search" placeholder="搜索用户ID/昵称..." style="width:200px;">
+            </div>
+            <div>
+              <button class="btn btn-primary btn-sm">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+                添加用户
+              </button>
+            </div>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr><th>用户</th><th>ID</th><th>注册时间</th><th>测评数</th><th>对话数</th><th>状态</th><th>操作</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><div class="user-cell"><div class="user-avatar-sm" style="background:linear-gradient(135deg,#E8835A,#D4724B)">林</div><span class="user-name">林小然</span></div></td>
+                <td style="color:var(--color-text-tertiary);font-family:var(--font-mono);font-size:12px">#U001</td>
+                <td style="color:var(--color-text-secondary)">2025-03-12</td>
+                <td style="font-weight:500">12</td>
+                <td style="font-weight:500">47</td>
+                <td><span class="status-tag active"><span class="status-dot"></span>活跃</span></td>
+                <td><div class="action-btns"><button class="action-link">查看</button><button class="action-link">编辑</button></div></td>
+              </tr>
+              <tr>
+                <td><div class="user-cell"><div class="user-avatar-sm" style="background:linear-gradient(135deg,#6BAF9E,#5A9D8C)">陈</div><span class="user-name">陈默</span></div></td>
+                <td style="color:var(--color-text-tertiary);font-family:var(--font-mono);font-size:12px">#U002</td>
+                <td style="color:var(--color-text-secondary)">2025-03-18</td>
+                <td style="font-weight:500">8</td>
+                <td style="font-weight:500">23</td>
+                <td><span class="status-tag warning"><span class="status-dot"></span>关注</span></td>
+                <td><div class="action-btns"><button class="action-link">查看</button><button class="action-link">编辑</button></div></td>
+              </tr>
+              <tr>
+                <td><div class="user-cell"><div class="user-avatar-sm" style="background:linear-gradient(135deg,#7AAED6,#5A9BC7)">周</div><span class="user-name">周雨晴</span></div></td>
+                <td style="color:var(--color-text-tertiary);font-family:var(--font-mono);font-size:12px">#U003</td>
+                <td style="color:var(--color-text-secondary)">2025-04-01</td>
+                <td style="font-weight:500">5</td>
+                <td style="font-weight:500">18</td>
+                <td><span class="status-tag active"><span class="status-dot"></span>活跃</span></td>
+                <td><div class="action-btns"><button class="action-link">查看</button><button class="action-link">编辑</button></div></td>
+              </tr>
+              <tr>
+                <td><div class="user-cell"><div class="user-avatar-sm" style="background:linear-gradient(135deg,#D4943A,#C08430)">王</div><span class="user-name">王思远</span></div></td>
+                <td style="color:var(--color-text-tertiary);font-family:var(--font-mono);font-size:12px">#U004</td>
+                <td style="color:var(--color-text-secondary)">2025-04-15</td>
+                <td style="font-weight:500">15</td>
+                <td style="font-weight:500">62</td>
+                <td><span class="status-tag active"><span class="status-dot"></span>活跃</span></td>
+                <td><div class="action-btns"><button class="action-link">查看</button><button class="action-link">编辑</button></div></td>
+              </tr>
+              <tr>
+                <td><div class="user-cell"><div class="user-avatar-sm" style="background:linear-gradient(135deg,#B08DB9,#9A77A3)">赵</div><span class="user-name">赵轻舟</span></div></td>
+                <td style="color:var(--color-text-tertiary);font-family:var(--font-mono);font-size:12px">#U005</td>
+                <td style="color:var(--color-text-secondary)">2025-05-02</td>
+                <td style="font-weight:500">3</td>
+                <td style="font-weight:500">7</td>
+                <td><span class="status-tag inactive"><span class="status-dot"></span>静默</span></td>
+                <td><div class="action-btns"><button class="action-link">查看</button><button class="action-link">编辑</button></div></td>
+              </tr>
+              <tr>
+                <td><div class="user-cell"><div class="user-avatar-sm" style="background:linear-gradient(135deg,#5BA88D,#4A9780)">李</div><span class="user-name">李安然</span></div></td>
+                <td style="color:var(--color-text-tertiary);font-family:var(--font-mono);font-size:12px">#U006</td>
+                <td style="color:var(--color-text-secondary)">2025-05-10</td>
+                <td style="font-weight:500">21</td>
+                <td style="font-weight:500">89</td>
+                <td><span class="status-tag warning"><span class="status-dot"></span>关注</span></td>
+                <td><div class="action-btns"><button class="action-link">查看</button><button class="action-link">编辑</button></div></td>
+              </tr>
+              <tr>
+                <td><div class="user-cell"><div class="user-avatar-sm" style="background:linear-gradient(135deg,#C75C5C,#B54D4D)">孙</div><span class="user-name">孙未央</span></div></td>
+                <td style="color:var(--color-text-tertiary);font-family:var(--font-mono);font-size:12px">#U007</td>
+                <td style="color:var(--color-text-secondary)">2025-05-18</td>
+                <td style="font-weight:500">6</td>
+                <td style="font-weight:500">31</td>
+                <td><span class="status-tag active"><span class="status-dot"></span>活跃</span></td>
+                <td><div class="action-btns"><button class="action-link">查看</button><button class="action-link">编辑</button></div></td>
+              </tr>
+              <tr>
+                <td><div class="user-cell"><div class="user-avatar-sm" style="background:linear-gradient(135deg,#6B8EC7,#5A7DB7)">吴</div><span class="user-name">吴知行</span></div></td>
+                <td style="color:var(--color-text-tertiary);font-family:var(--font-mono);font-size:12px">#U008</td>
+                <td style="color:var(--color-text-secondary)">2025-05-22</td>
+                <td style="font-weight:500">9</td>
+                <td style="font-weight:500">15</td>
+                <td><span class="status-tag inactive"><span class="status-dot"></span>静默</span></td>
+                <td><div class="action-btns"><button class="action-link">查看</button><button class="action-link">编辑</button></div></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="pagination">
+            <div class="pagination-info">共 12,846 条记录，当前第 1/1,606 页</div>
+            <div class="pagination-btns">
+              <button class="page-btn disabled">‹</button>
+              <button class="page-btn active">1</button>
+              <button class="page-btn">2</button>
+              <button class="page-btn">3</button>
+              <button class="page-btn">...</button>
+button class="page-btn">1606</button>
+              <button class="page-btn">›</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== 页面3：测评管理 ========== -->
+    <div class="page" id="page-assessments">
+      <div class="dashboard-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom:var(--space-2xl);">
+        <div class="stat-card"><div class="stat-info"><h3>量表总数</h3><div class="stat-value">18</div></div><div class="stat-icon green"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div></div>
+        <div class="stat-card"><div class="stat-info"><h3>总完成量</h3><div class="stat-value">8,567</div></div><div class="stat-icon orange"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></div></div>
+        <div class="stat-card"><div class="stat-info"><h3>平均完成率</h3><div class="stat-value">87%</div></div><div class="stat-icon amber"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div></div>
+        <div class="stat-card"><div class="stat-info"><h3>本周新增</h3><div class="stat-value">+342</div></div><div class="stat-icon red"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg></div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">量表管理</div>
+          <button class="btn btn-primary btn-sm">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            新增量表
+          </button>
+        </div>
+        <div class="card-body">
+          <table class="data-table">
+            <thead><tr><th>量表名称</th><th>类别</th><th>题数</th><th>完成数</th><th>平均分</th><th>状态</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr>
+                <td class="user-name">PHQ-9 患者健康问卷</td>
+                <td><span class="emotion-tag">抑郁筛查</span></td>
+                <td>9</td>
+                <td style="font-weight:500">2,847</td>
+                <td style="font-family:var(--font-mono);font-weight:600">12.3</td>
+                <td><span class="status-tag active"><span class="status-dot"></span>启用</span></td>
+                <td><div class="action-btns"><button class="action-link">数据</button><button class="action-link">编辑</button></div></td>
+              </tr>
+              <tr>
+                <td class="user-name">GAD-7 广泛性焦虑量表</td>
+                <td><span class="emotion-tag">焦虑筛查</span></td>
+                <td>7</td>
+                <td style="font-weight:500">2,156</td>
+                <td style="font-family:var(--font-mono);font-weight:600">9.7</td>
+                <td><span class="status-tag active"><span class="status-dot"></span>启用</span></td>
+                <td><div class="action-btns"><button class="action-link">数据</button><button class="action-link">编辑</button></div></td>
+              </tr>
+              <tr>
+                <td class="user-name">PSS 感知压力量表</td>
+                <td><span class="emotion-tag">压力评估</span></td>
+                <td>10</td>
+                <td style="font-weight:500">1,423</td>
+                <td style="font-family:var(--font-mono);font-weight:600">18.5</td>
+                <td><span class="status-tag active"><span class="status-dot"></span>启用</span></td>
+                <td><div class="action-btns"><button class="action-link">数据</button><button class="action-link">编辑</button></div></td>
+              </tr>
+              <tr>
+                <td class="user-name">Rosenberg 自尊量表</td>
+                <td><span class="emotion-tag">自尊评估</span></td>
+                <td>10</td>
+                <td style="font-weight:500">987</td>
+                <td style="font-family:var(--font-mono);font-weight:600">28.1</td>
+                <td><span class="status-tag active"><span class="status-dot"></span>启用</span></td>
+                <td><div class="action-btns"><button class="action-link">数据</button><button class="action-link">编辑</button></div></td>
+              </tr>
+              <tr>
+                <td class="user-name">SWLS 生活满意度量表</td>
+                <td><span class="emotion-tag">幸福感</span></td>
+                <td>5</td>
+                <td style="font-weight:500">756</td>
+                <td style="font-family:var(--font-mono);font-weight:600">19.2</td>
+                <td><span class="status-tag active"><span class="status-dot"></span>启用</span></td>
+                <td><div class="action-btns"><button class="action-link">数据</button><button class="action-link">编辑</button></div></td>
+              </tr>
+              <tr>
+                <td class="user-name">PSS-10 简版压力量表</td>
+                <td><span class="emotion-tag">压力评估</span></td>
+                <td>10</td>
+                <td style="font-weight:500">398</td>
+                <td style="font-family:var(--font-mono);font-weight:600">16.8</td>
+                <td><span class="status-tag inactive"><span class="status-dot"></span>草稿</span></td>
+                <td><div class="action-btns"><button class="action-link">预览</button><button class="action-link">编辑</button></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== 页面3.5：测评内容编辑 ========== -->
+    <div class="page" id="page-assess-editor">
+      <div class="editor-layout">
+        <!-- 左侧：量表基本信息 -->
+        <aside class="editor-sidebar">
+          <h4 style="font-size:15px;font-weight:700;margin-bottom:var(--space-lg);color:var(--color-text-primary);">量表信息</h4>
+          <div class="editor-field">
+            <label class="editor-label">量表名称 <span class="required">*</span></label>
+            <input type="text" class="editor-input" value="焦虑自评量表（SAS）" placeholder="输入量表名称">
+          </div>
+          <div class="editor-field">
+            <label class="editor-label">量表类别</label>
+            <select class="editor-select">
+              <option>焦虑筛查</option><option>抑郁筛查</option><option>压力评估</option><option>自尊评估</option><option>幸福感</option><option>睡眠质量</option>
+            </select>
+          </div>
+          <div class="editor-field">
+            <label class="editor-label">简介描述</label>
+            <textarea class="editor-textarea" rows="3" placeholder="简要说明量表的用途和适用人群">用于评估受试者焦虑症状的严重程度和变化，适用于具有焦虑症状的成年人。</textarea>
+          </div>
+          <div class="editor-field">
+            <label class="editor-label">计分方式</label>
+            <select class="editor-select">
+              <option>Likert 4级（0-3分）</option>
+              <option>Likert 5级（1-5分）</option>
+              <option>是/否（0/1分）</option>
+              <option>自定义分数</option>
+            </select>
+          </div>
+          <div style="margin-top:var(--space-xl);display:flex;flex-direction:column;gap:var(--space-sm);">
+            <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="">保存量表</button>
+            <button class="btn btn-outline" style="width:100%;justify-content:center;">预览效果</button>
+            <button class="" style="width:100%;padding:8px;border:none;background:none;color:var(--color-danger);font-size:13px;font-weight:500;cursor:pointer;text-align:center;">删除此量表</button>
+          </div>
+        </aside>
+
+        <!-- 右侧：题目编辑器 + 计分规则 -->
+        <main class="editor-main">
+          <!-- 题目编辑区 -->
+          <section class="editor-section">
+            <div class="editor-section-title"><span class="num-badge">1</span> 编辑试题</div>
+
+            <!-- 题目1 -->
+            <div class="question-card">
+              <div class="question-header">
+                <div class="question-num">Q1</div>
+                <input type="text" class="question-title-input" value="最近一周，你是否经常感到紧张或焦虑？">
+                <div class="question-actions">
+                  <button class="q-action-btn" title="上移"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18,15 12,9 6,15"/></svg></button>
+                  <button class="q-action-btn" title="下移"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6,9 12,15 18,9"/></svg></button>
+                  <button class="q-action-btn danger" title="删除"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
+                </div>
+              </div>
+              <div class="options-editor">
+                <div class="option-row"><input class="option-score" value="1" readonly><input class="option-text" value="没有或很少时间"></div>
+                <div class="option-row"><input class="option-score" value="2" readonly><input class="option-text" value="小部分时间"></div>
+                <div class="option-row"><input class="option-score" value="3" readonly><input class="option-text" value="相当多时间"></div>
+                <div class="option-row"><input class="option-score" value="4" readonly><input class="option-text" value="绝大部分或全部时间"></div>
+              </div>
+            </div>
+
+            <!-- 题目2 -->
+            <div class="question-card">
+              <div class="question-header">
+                <div class="question-num">Q2</div>
+                <input type="text" class="question-title-input" value="你是否常常感到无缘无故的害怕？">
+                <div class="question-actions">
+                  <button class="q-action-btn" title="上移"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18,15 12,9 6,15"/></svg></button>
+                  <button class="q-action-btn" title="下移"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6,9 12,15 18,9"/></svg></button>
+                  <button class="q-action-btn danger" title="删除"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
+                </div>
+              </div>
+              <div class="options-editor">
+                <div class="option-row"><input class="option-score" value="1" readonly><input class="option-text" value="没有或很少时间"></div>
+                <div class="option-row"><input class="option-score" value="2" readonly><input class="option-text" value="小部分时间"></div>
+                <div class="option-row"><input class="option-score" value="3" readonly><input class="option-text" value="相当多时间"></div>
+                <div class="option-row"><input class="option-score" value="4" readonly><input class="option-text" value="绝大部分或全部时间"></div>
+              </div>
+            </div>
+
+            <!-- 题目3 -->
+            <div class="question-card">
+              <div class="question-header">
+                <div class="question-num">Q3</div>
+                <input type="text" class="question-title-input" value="是否容易感到心慌或心跳加速？">
+                <div class="question-actions">
+                  <button class="q-action-btn" title="上移"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18,15 12,9 6,15"/></svg></button>
+                  <button class="q-action-btn" title="下移"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6,9 12,15 18,9"/></svg></button>
+                  <button class="q-action-btn danger" title="删除"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
+                </div>
+              </div>
+              <div class="options-editor">
+                <div class="option-row"><input class="option-score" value="1" readonly><input class="option-text" value="没有或很少时间"></div>
+                <div class="option-row"><input class="option-score" value="2" readonly><input class="option-text" value="小部分时间"></div>
+                <div class="option-row"><input class="option-score" value="3" readonly><input class="option-text" value="相当多时间"></div>
+                <div class="option-row"><input class="option-score" value="4" readonly><input class="option-text" value="绝大部分或全部时间"></div>
+              </div>
+            </div>
+
+            <button class="btn btn-outline" style="margin-top:var(--space-md); display:inline-flex;align-items:center;gap:6px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              添加新题目
+            </button>
+          </section>
+
+          <!-- 计分规则配置区 -->
+          <section class="editor-section">
+            <div class="scoring-rules-panel">
+              <div class="scoring-header">
+                <h3>计分规则配置</h3>
+                <span style="font-size:12px;color:var(--color-text-tertiary);">Likert 4级 · 总分 0-80 分</span>
+              </div>
+              <div class="scoring-body">
+                <!-- Likert 可视化 -->
+                <div class="likert-visual">
+                  <div class="likert-title">选项分值映射（每题）</div>
+                  <div class="likert-bar-row">
+                    <span class="likert-score-tag" style="background:#E8F5E9;color:#2E7D32;">1分</span>
+                    <span class="likert-score-desc">没有或很少</span>
+                    <div class="likert-bar-track"><div class="likert-bar-fill" style="width:25%;background:#81C784;">25%</div></div>
+                  </div>
+                  <div class="likert-bar-row">
+                    <span class="likert-score-tag" style="background:#FFF8E1;color:#F57F17;">2分</span>
+                    <span class="likert-score-desc">小部分时间</span>
+                    <div class="likert-bar-track"><div class="likert-bar-fill" style="width:50%;background:#FFD54F;">50%</div></div>
+                  </div>
+                  <div class="likert-bar-row">
+                    <span class="likert-score-tag" style="background:#FFF3E0;color:#E65100;">3分</span>
+                    <span class="likert-score-desc">相当多时间</span>
+                    <div class="likert-bar-track"><div class="likert-bar-fill" style="width:75%;background:#FFB74D;">75%</div></div>
+                  </div>
+                  <div class="likert-bar-row">
+                    <span class="likert-score-tag" style="background:#FFEBEE;color:#C62828;">4分</span>
+                    <span class="likert-score-desc">绝大/全部</span>
+                    <div class="likert-bar-track"><div class="likert-bar-fill" style="width:100%;background:#E57373;">100%</div></div>
+                  </div>
+                </div>
+
+                <!-- 维度映射表 -->
+                <div class="dimension-map">
+                  <div class="dim-map-title">总分 → 焦虑程度判定标准</div>
+                  <table class="dim-map-table">
+                    <thead>
+                      <tr><th>等级</th><th>原始总分范围</th><th>标准分 (×1.25)</th><th>含义说明</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr><td><span class="dim-level" style="background:#E8F5E9;color:#2E7D32;">正常</span></td><td class="dim-range">20 — 39</td><td class="dim-range">25 — 49</td><td>无明显焦虑症状</td></tr>
+                      <tr><td><span class="dim-level" style="background:#FFF8E1;color:#F57F17;">轻度</span></td><td class="dim-range">40 — 47</td><td class="dim-range">50 — 59</td><td>轻度焦虑，建议关注</td></tr>
+                      <tr><td><span class="dim-level" style="background:#FFE0B2;color:#EF6C00;">中度</span></td><td class="dim-range">48 — 57</td><td class="dim-range">60 — 69</td><td>中度焦虑，建议咨询</td></tr>
+                      <tr><td><span class="dim-level" style="background:#FFEBEE;color:#C62828;">重度</span></td><td class="dim-range">58 — 80</td><td class="dim-range">70 — 100</td><td>重度焦虑，需专业干预</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- 快速区间卡片 -->
+                <div class="range-cards">
+                  <div class="range-card" style="border-color:#A5D6A7;background:#F1F8E9;">
+                    <span class="range-val" style="color:#2E7D32;">&lt;40</span>
+                    <span class="range-label">正常范围</span>
+                  </div>
+                  <div class="range-card" style="border-color:#FFE082;background:#FFFDE7;">
+                    <span class="range-val" style="color:#F57F17;">40-47</span>
+                    <span class="range-label">轻度焦虑</span>
+                  </div>
+                  <div class="range-card" style="border-color:#FFCC80;background:#FFF3E0;">
+                    <span class="range-val" style="color:#EF6C00;">48-57</span>
+                    <span class="range-label">中度焦虑</span>
+                  </div>
+                  <div class="range-card" style="border-color:#EF9A9A;background:#FFEBEE;">
+                    <span class="range-val" style="color:#C62828;">&gt;58</span>
+                    <span class="range-label">重度焦虑</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <!-- ========== 页面3.6：AI 分析中心 ========== -->
+    <div class="page" id="page-ai-analysis">
+      <div class="ai-center-grid">
+        <!-- 左列：AI 功能卡片 -->
+        <div>
+          <!-- AI 报告生成 -->
+          <div class="ai-feature-card" style="margin-bottom:var(--space-xl);">
+            <div class="ai-feature-icon" style="background:linear-gradient(135deg,var(--color-primary-light),#FDE8E0);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><path d="M9 15l2 2 4-4"/></svg>
+            </div>
+            <div class="ai-feature-title">AI 测评报告解读</div>
+            <div class="ai-feature-desc">自动分析用户的测评数据，结合多维度得分、答题模式和时间趋势，生成个性化深度解读报告。支持一键发布到用户端。</div>
+            <div class="ai-status-badge" style="background:var(--color-success-bg);color:var(--color-success);">
+              <span class="ai-status-dot" style="background:var(--color-success);"></span>已启用
+            </div>
+            <div class="ai-config-row">
+              <label>分析模型</label>
+              <select style="flex:1;"><option>GPT-4o（推荐）</option><option>Claude 3.5</option><option>通义千问-Max</option></select>
+            </div>
+            <div class="ai-config-row">
+              <label>报告风格</label>
+              <select style="flex:1;"><option>温暖共情型</option><option>专业客观型</option><option>简洁行动型</option></select>
+            </div>
+          </div>
+
+          <!-- 批量分析 -->
+          <div class="ai-feature-card" style="margin-bottom:var(--space-xl);">
+            <div class="ai-feature-icon" style="background:linear-gradient(135deg,var(--color-secondary-light),#D4F5ED);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="var(--color-secondary)"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            </div>
+            <div class="ai-feature-title">批量数据洞察</div>
+            <div class="ai-feature-desc">上传批量测评数据，由 AI 自动识别群体性心理特征分布、异常模式预警和趋势变化。支持 CSV / JSON 格式。</div>
+            <div class="upload-zone" style="margin-top:var(--space-md);margin-bottom:0;padding:var(--space-lg);">
+              <div class="upload-zone-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+              <div class="upload-zone-text">点击或拖拽文件到此处上传</div>
+              <div class="upload-zone-hint">支持 .csv, .json 格式，最大 10MB</div>
+            </div>
+          </div>
+
+          <!-- 危机识别 -->
+          <div class="ai-feature-card">
+            <div class="ai-feature-icon" style="background:var(--color-danger-bg);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+            <div class="ai-feature-title">危机信号智能识别</div>
+            <div class="ai-feature-desc">实时监控用户测评结果和对话内容，利用 NLP 模型自动识别自伤、自杀等高危语言信号，第一时间触发预警通知。</div>
+            <div class="ai-status-badge" style="background:var(--color-warning-bg);color:var(--color-warning);">
+              <span class="ai-status-dot" style="background:var(--color-warning);"></span>配置中
+            </div>
+            <div class="ai-config-row">
+              <label>灵敏度</label>
+              <select style="flex:1;"><option>高灵敏度（低漏报）</option><option selected>平衡模式</option><option>低灵敏度（少误报）</option></select>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右列：分析预览 + API 状态 -->
+        <div>
+          <!-- 分析预览 -->
+          <div class="ai-preview-area" style="margin-bottom:var(--space-xl);">
+            <div class="ai-preview-header">
+              <div class="ai-preview-title">AI 解读报告示例</div>
+              <button class="btn btn-primary btn-sm">刷新示例</button>
+            </div>
+            <div class="ai-preview-content">
+              <p style="margin-bottom:10px;"><strong>用户：</strong>张三 | <strong>量表：</strong>SAS 焦虑自评 | <strong>总分：</strong>56 分（中度焦虑）</p>
+              <p style="margin-bottom:10px;">该用户在<strong>认知焦虑</strong>维度得分显著偏高（72/100），表现为反复反刍过去对话、过度担忧未来场景。<strong>躯体化</strong>维度相对较低（45/100），说明焦虑尚未明显影响生理状态。</p>
+              <p style="margin-bottom:10px;">核心发现：该用户近两周测评得分呈上升趋势（+8分），且在"睡眠质量"相关题目中选择高频选项，提示可能存在焦虑→失眠的恶性循环。</p>
+              <p style="margin:0;color:var(--color-primary);font-weight:600;">→ 建议优先推送：呼吸放松练习 + 睡眠改善方案</p>
+            </div>
+          </div>
+
+          <!-- API 连接状态 -->
+          <div class="card" style="margin-bottom:var(--space-xl);">
+            <div class="card-header">
+              <div class="card-title">AI 服务连接状态</div>
+            </div>
+            <div class="card-body">
+              <div style="display:flex; flex-direction:column; gap:var(--space-sm);">
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:var(--space-sm) var(--space-md); background:var(--color-surface-warm); border-radius:var(--radius-md);">
+                  <div style="display:flex; align-items:center; gap:var(--space-sm);">
+                    <span style="width:8px;height:8px;border-radius:50%;background:var(--color-success);display:inline-block;"></span>
+                    <span style="font-size:14px;">GPT-4o API</span>
+                  </div>
+                  <span style="font-size:12px;color:var(--color-success);font-weight:600;">正常 · 延迟 230ms</span>
+                </div>
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:var(--space-sm) var(--space-md); background:var(--color-surface-warm); border-radius:var(--radius-md);">
+                  <div style="display:flex; align-items:center; gap:var(--space-sm);">
+                    <span style="width:8px;height:8px;border-radius:50%;background:var(--color-success);display:inline-block;"></span>
+                    <span style="font-size:14px;">Embedding 向量服务</span>
+                  </div>
+                  <span style="font-size:12px;color:var(--color-success);font-weight:600;">正常 · 延迟 85ms</span>
+                </div>
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:var(--space-sm) var(--space-md); background:var(--color-surface-warm); border-radius:var(--radius-md);">
+                  <div style="display:flex; align-items:center; gap:var(--space-sm);">
+                    <span style="width:8px;height:8px;border-radius:50%;background:var(--color-warning);display:inline-block;"></span>
+                    <span style="font-size:14px;">NLP 危机检测模型</span>
+                  </div>
+                  <span style="font-size:12px;color:var(--color-warning);font-weight:600;">训练中 · 完成度 78%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 调用统计 -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">本月 AI 调用统计</div>
+            </div>
+            <div class="card-body">
+              <div class="dashboard-grid" style="grid-template-columns:repeat(2,1fr);">
+                <div class="stat-card"><div class="stat-info"><h3>报告生成</h3><div class="stat-value" style="color:var(--color-primary);">3,842</div></div><div class="stat-icon orange"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg></div></div>
+                <div class="stat-card"><div class="stat-info"><h3>Token 消耗</h3><div class="stat-value" style="color:var(--color-secondary);">128K</div></div><div class="stat-icon green"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg></div></div>
+                <div class="stat-card"><div class="stat-info"><h3>危机识别</h3><div class="stat-value" style="color:var(--color-danger);">23</div></div><div class="stat-icon red"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div></div>
+                <div class="stat-card"><div class="stat-info"><h3>平均响应</h3><div class="stat-value" style="color:var(--color-info);">0.8s</div></div><div class="stat-icon blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== 页面4：树洞审核 ========== -->
+    <div class="page" id="page-treehole">
+      <div class="table-toolbar" style="padding:0;">
+        <div class="table-filters">
+          <select class="filter-select"><option>待审核 (5)</option><option>已通过</option><option>已拒绝</option><option>全部</option></select>
+          <select class="filter-select"><option>所有情绪标签</option><option>焦虑</option><option>抑郁</option><option>压力</option><option>孤独</option></select>
+        </div>
+        <div style="display:flex;gap:var(--space-sm);">
+          <button class="btn btn-primary btn-sm">批量通过</button>
+          <button class="btn btn-ghost btn-sm">批量拒绝</button>
+        </div>
+      </div>
+
+      <div class="review-card">
+        <div class="review-header">
+          <div class="review-anonymous">
+            <div class="anonymous-mask">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-tertiary)" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 15s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+            </div>
+            <div>
+              <span style="font-size:14px;font-weight:500;">匿名用户 ****91</span>
+              <span class="review-meta" style="margin-left:8px;">今天 14:23 · 发布于「深夜心事」</span>
+            </div>
+          </div>
+          <span class="review-tag">待审核</span>
+        </div>
+        <div class="review-body">
+          最近总是睡不着，躺在床上翻来覆去到凌晨三四点。白天工作的时候也集中不了注意力，感觉整个人像飘在空中一样不真实。不知道是不是最近压力太大了，但又说不清楚具体是什么压力……有没有人也有这种感觉？你们都是怎么处理的？
+        </div>
+        <div class="review-tags">
+          <span class="emotion-tag">失眠</span>
+          <span class="emotion-tag">焦虑</span>
+          <span class="emotion-tag">压力</span>
+          <span class="emotion-tag">求助</span>
+        </div>
+        <div class="review-actions">
+          <button class="btn btn-primary btn-sm">✓ 通过</button>
+          <button class="btn btn-ghost btn-sm">✕ 拒绝</button>
+          <button class="btn btn-secondary btn-sm">⚠ 标记关注</button>
+        </div>
+      </div>
+
+      <div class="review-card">
+        <div class="review-header">
+          <div class="review-anonymous">
+            <div class="anonymous-mask">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-tertiary)" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 15s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+            </div>
+            <div>
+              <span style="font-size:14px;font-weight:500;">匿名用户 ****43</span>
+              <span class="review-meta" style="margin-left:8px;">今天 12:05 · 发布于「职场吐槽」</span>
+            </div>
+          </div>
+          <span class="review-tag">待审核</span>
+        </div>
+        <div class="review-body">
+          终于周五了！这一周真的太累了，感觉被掏空。但一想到周末又要加班就头疼。有时候觉得这样日复一日的生活到底有什么意义，但又不敢停下来。想听听大家周末都在做什么放松的事情。
+        </div>
+        <div class="review-tags">
+          <span class="emotion-tag">疲惫</span>
+          <span class="emotion-tag">职场</span>
+          <span class="emotion-tag">寻求共鸣</span>
+        </div>
+        <div class="review-actions">
+          <button class="btn btn-primary btn-sm">✓ 通过</button>
+          <button class="btn btn-ghost btn-sm">✕ 拒绝</button>
+          <button class="btn btn-secondary btn-sm">⚠ 标记关注</button>
+        </div>
+      </div>
+
+      <div class="review-card" style="border-color:var(--color-crisis-border);background:var(--color-crisis-bg);">
+        <div class="review-header">
+          <div class="review-anonymous">
+            <div class="anonymous-mask">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-crisis)" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 15s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+            </div>
+            <div>
+              <span style="font-size:14px;font-weight:500;color:var(--color-crisis-text)">匿名用户 ****78</span>
+              <span class="review-meta" style="margin-left:8px;">今天 09:41 · 发布于「情绪出口」</span>
+            </div>
+          </div>
+          <span class="review-tag" style="background:var(--color-crisis-bg);color:var(--color-crisis);">⚠ 高风险标记</span>
+        </div>
+        <div class="review-body" style="color:var(--color-crisis-text)">
+          有时候真的很想就这样消失掉算了。不是开玩笑的那种，是真的觉得如果明天不用醒来就好了。我知道这样说不太好，但这里应该可以让我说出来吧？
+        </div>
+        <div class="review-tags">
+          <span class="emotion-tag" style="background:var(--color-crisis-bg);color:var(--color-crisis-text)">⚠ 自伤意念</span>
+          <span class="emotion-tag">抑郁</span>
+          <span class="emotion-tag">绝望</span>
+        </div>
+        <div class="review-actions">
+          <button class="btn btn-primary btn-sm" style="background:var(--color-crisis);">🚨 立即介入</button>
+          <button class="btn btn-ghost btn-sm">转人工审核</button>
+          <button class="btn btn-secondary btn-sm">📞 联系紧急支援</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== 页面5：AI Agent 配置 ========== -->
+    <div class="page" id="page-ai-agents">
+      <div class="agent-config-card">
+        <div class="agent-config-header">
+          <div class="agent-avatar-lg" style="background:linear-gradient(135deg,#E8835A,#D4724B)">知</div>
+          <div>
+            <div class="agent-name-lg">青年知音</div>
+            <div class="agent-desc-lg">面向青少年的共情型倾听伙伴，擅长校园生活与成长困惑话题</div>
+          </div>
+        </div>
+        <div class="config-form-row">
+          <label class="config-label">Agent 名称</label>
+          <input class="config-input" value="青年知音">
+        </div>
+        <div class="config-form-row">
+          <label class="config-label">系统提示词摘要</label>
+          <input class="config-input" value="你是一个温暖、懂青少年的倾听者..." style="max-width:480px;">
+        </div>
+        <div class="config-form-row">
+          <label class="config-label">温度参数</label>
+          <div class="config-slider-container">
+            <input class="config-slider" type="range" min="0" max="100" value="70">
+            <span class="slider-value">0.70</span>
+          </div>
+        </div>
+        <div class="config-form-row">
+          <label class="config-label">最大回复长度</label>
+          <div class="config-slider-container">
+            <input class="config-slider" type="range" min="100" max="800" value="400">
+            <span class="slider-value">400</span>
+          </div>
+        </div>
+        <div class="config-form-row">
+          <label class="config-label">主动关怀频率</label>
+          <div class="config-slider-container">
+            <input class="config-slider" type="range" min="1" max="14" value="3">
+            <span class="slider-value">每3天</span>
+          </div>
+        </div>
+        <div class="config-form-row">
+          <label class="config-label">危机触发阈值</label>
+          <div class="config-slider-container">
+            <input class="config-slider" type="range" min="1" max="10" value="7" style="accent-color:var(--color-crisis);">
+            <span class="slider-value" style="color:var(--color-crisis)">7/10</span>
+          </div>
+        </div>
+        <div style="margin-top:var(--space-lg);display:flex;gap:var(--space-sm);">
+          <button class="btn btn-primary">保存配置</button>
+          <button class="btn btn-ghost">重置默认</button>
+          <button class="btn btn-secondary">测试对话</button>
+        </div>
+      </div>
+
+      <div class="agent-config-card">
+        <div class="agent-config-header">
+          <div class="agent-avatar-lg" style="background:linear-gradient(135deg,#6BAF9E,#5A9D8C)">通</div>
+          <div>
+            <div class="agent-name-lg">通用助手</div>
+            <div class="agent-desc-lg">全能型心理支持助手，覆盖日常情绪疏导与认知引导</div>
+          </div>
+        </div>
+        <div class="config-form-row">
+          <label class="config-label">Agent 名称</label>
+          <input class="config-input" value="通用助手">
+        </div>
+        <div class="config-form-row">
+          <label class="config-label">温度参数</label>
+          <div class="config-slider-container">
+            <input class="config-slider" type="range" min="0" max="100" value="55">
+            <span class="slider-value">0.55</span>
+          </div>
+        </div>
+        <div class="config-form-row">
+          <label class="config-label">最大回复长度</label>
+          <div class="config-slider-container">
+            <input class="config-slider" type="range" min="100" max="800" value="350">
+            <span class="slider-value">350</span>
+          </div>
+        </div>
+        <div style="margin-top:var(--space-lg);display:flex;gap:var(--space-sm);">
+          <button class="btn btn-primary">保存配置</button>
+          <button class="btn btn-ghost">重置默认</button>
+          <button class="btn btn-secondary">测试对话</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== 页面6：危机预警 ========== -->
+    <div class="page" id="page-crisis">
+      <div class="crisis-header-stats">
+        <div class="crisis-stat urgent">
+          <div>
+            <div class="crisis-stat-num">3</div>
+            <div class="crisis-stat-label">紧急待处理</div>
+          </div>
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--color-crisis)" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div class="crisis-stat normal">
+          <div>
+            <div class="crisis-stat-num">12</div>
+            <div class="crisis-stat-label">持续观察中</div>
+          </div>
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--color-info)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="crisis-stat resolved-stat">
+          <div>
+            <div class="crisis-stat-num">156</div>
+            <div class="crisis-stat-label">本月已解决</div>
+          </div>
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">预警事件列表</div>
+          <div style="display:flex;gap:var(--space-sm);">
+            <select class="filter-select"><option>全部等级</option><option>紧急</option><option>中等</option><option>低</option></select>
+            <select class="filter-select"><option>全部状态</option><option>待处理</option><option>处理中</option><option>已解决</option></select>
+          </div>
+        </div>
+        <div class="card-body" style="padding:0;">
+          <ul class="alert-list" style="padding:0 var(--space-xl);">
+            <li class="alert-item">
+              <span class="alert-level high"></span>
+              <div class="alert-content">
+                <div class="alert-title">【紧急】AI对话中检测到自伤意念表达 — "想要就这样消失"</div>
+                <div class="alert-desc">来源：AI对话 · 触发词：消失、不想醒来、自伤倾向 | 建议立即启动危机干预流程</div>
+                <div class="alert-meta">
+                  <span class="alert-time">2025-05-26 14:23</span>
+                  <span class="alert-user">用户****7823</span>
+                  <span class="alert-status pending">待处理</span>
+                </div>
+              </div>
+            </li>
+            <li class="alert-item">
+              <span class="alert-level high"></span>
+              <div class="alert-content">
+                <div class="alert-title">【紧急】树洞内容含高自杀风险表述</div>
+                <div class="alert-desc">来源：树洞发布 · 情感分析：绝望指数 92/100 | 已自动隐藏该内容</div>
+                <div class="alert-meta">
+                  <span class="alert-time">2025-05-26 09:41</span>
+                  <span class="alert-user">匿名****78</span>
+                  <span class="alert-status handling">处理中</span>
+                </div>
+              </div>
+            </li>
+            <li class="alert-item">
+              <span class="alert-level high"></span>
+              <div class="alert-content">
+                <div class="alert-title">【紧急】连续3次PHQ-9评分≥20分且呈上升趋势</div>
+                <div class="alert-desc">来源：测评系统 | 最近三次得分：18→21→23 | 用户已14天未登录</div>
+                <div class="alert-meta">
+                  <span class="alert-time">2025-05-25 22:10</span>
+                  <span class="alert-user">用户****3156</span>
+                  <span class="alert-status handling">处理中</span>
+                </div>
+              </div>
+            </li>
+            <li class="alert-item">
+              <span class="alert-level medium"></span>
+              <div class="alert-content">
+                <div class="alert-title">GAD-7焦虑评分连续两周偏高（≥14分）</div>
+                <div class="alert-desc">来源：测评系统 | 最近两次得分：15→16 | 建议推送放松练习资源</div>
+                <div class="alert-meta">
+                  <span class="alert-time">2025-05-26 11:30</span>
+                  <span class="alert-user">用户****5621</span>
+                  <span class="alert-status pending">待处理</span>
+                </div>
+              </div>
+            </li>
+            <li class="alert-item">
+              <span class="alert-level medium"></span>
+              <div class="alert-content">
+                <div class="alert-title">对话中出现孤立感高频词汇</div>
+                <div class="alert-desc">来源：AI对话分析 | 关键词：没人理解、一个人、孤独出现频次↑</div>
+                <div class="alert-meta">
+                  <span class="alert-time">2025-05-26 08:15</span>
+                  <span class="alert-user">用户****9912</span>
+                  <span class="alert-status resolved">已关注</span>
+                </div>
+              </div>
+            </li>
+            <li class="alert-item">
+              <span class="alert-level low"></span>
+              <div class="alert-content">
+                <div class="alert-title">睡眠质量追踪异常 — 连续5天平均睡眠＜5小时</div>
+                <div class="alert-desc">来源：日常打卡 | 平均睡眠时长从6.5h降至4.2h</div>
+                <div class="alert-meta">
+                  <span class="alert-time">2025-05-25 07:00</span>
+                  <span class="alert-user">用户****3301</span>
+                  <span class="alert-status resolved">已关注</span>
+                </div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== 页面7：系统设置 ========== -->
+    <div class="page" id="page-settings">
+      <div class="card" style="margin-bottom:var(--space-2xl);">
+        <div class="card-body">
+          <div class="settings-section">
+            <div class="settings-section-title">基础设置</div>
+            <div class="settings-row">
+              <div class="settings-info">
+                <h4>平台名称</h4>
+                <p>显示在前端和管理台的名称</p>
+              </div>
+              <input class="config-input" value="了然 - AI心理认知与自我疗愈" style="max-width:320px;">
+            </div>
+            <div class="settings-row">
+              <div class="settings-info">
+                <h4>每日使用时长限制</h4>
+                <p>超过限制后提示用户休息，防止沉迷依赖</p>
+              </div>
+              <div style="display:flex;align-items:center;gap:var(--space-md);">
+                <input class="config-input" value="60" style="max-width:80px;text-align:center;"> 分钟
+              </div>
+            </div>
+            <div class="settings-row">
+              <div class="settings-info">
+                <h4>新用户引导流程</h4>
+                <p>首次登录时展示产品介绍和使用指南</p>
+              </div>
+              <div class="toggle-switch on" onclick="this.classList.toggle('on')"></div>
+            </div>
+            <div class="settings-row">
+              <div class="settings-info">
+                <h4>匿名模式默认开启</h4>
+                <p>树洞功能默认以匿名身份发布内容</p>
+              </div>
+              <div class="toggle-switch on" onclick="this.classList.toggle('on')"></div>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-section-title">通知设置</div>
+            <div class="settings-row">
+              <div class="settings-info">
+                <h4>危机预警实时推送</h4>
+                <p>当系统检测到高风险信号时立即推送给管理员</p>
+              </div>
+              <div class="toggle-switch on" onclick="this.classList.toggle('on')"></div>
+            </div>
+            <div class="settings-row">
+              <div class="settings-info">
+                <h4>每日数据报告邮件</h4>
+                <p>每天上午9点发送前一天的运营数据摘要</p>
+              </div>
+              <div class="toggle-switch on" onclick="this.classList.toggle('on')"></div>
+            </div>
+            <div class="settings-row">
+              <div class="settings-info">
+                <h4>树洞新内容提醒</h4>
+                <p>有新的树洞内容需要审核时发送通知</p>
+              </div>
+              <div class="toggle-switch on" onclick="this.classList.toggle('on')"></div>
+            </div>
+            <div class="settings-row">
+              <div class="settings-info">
+                <h4>用户反馈通知</h4>
+                <p>有新的用户反馈或投诉时发送通知</p>
+              </div>
+              <div class="toggle-switch" onclick="this.classList.toggle('on')"></div>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-section-title">安全设置</div>
+            <div class="settings-row">
+              <div class="settings-info">
+                <h4>敏感词过滤</h4>
+                <p>自动过滤树洞和对话中的敏感/不当内容</p>
+              </div>
+              <div class="toggle-switch on" onclick="this.classList.toggle('on')"></div>
+            </div>
+            <div class="settings-row">
+              <div class="settings-info">
+                <h4>危机干预自动化</h4>
+                <p>高危场景下自动触发预设的干预流程</p>
+              </div>
+              <div class="toggle-switch on" onclick="this.classList.toggle('on')"></div>
+            </div>
+            <div class="settings-row">
+              <div class="settings-info">
+                <h4>数据加密存储</h4>
+                <p>用户测评数据和对话内容采用AES-256加密</p>
+              </div>
+              <div class="toggle-switch on" onclick="this.classList.toggle('on')"></div>
+            </div>
+          </div>
+
+          <div style="margin-top:var(--space-2xl);">
+            <button class="btn btn-primary">保存所有设置</button>
+            <button class="btn btn-ghost" style="margin-left:var(--space-sm);">恢复默认</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== 页面8：操作日志 ========== -->
+    <div class="page" id="page-logs">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">操作日志</div>
+          <div class="table-filters">
+            <select class="filter-select"><option>所有类型</option><option>创建</option><option>更新</option><option>删除</option><option>预警</option></select>
+            <input type="text" class="topbar-search" placeholder="搜索操作..." style="width:180px;">
+          </div>
+        </div>
+        <div class="card-body" style="padding:0 var(--space-xl);">
+          <div class="log-item">
+            <div class="log-time-col">2025-05-26 14:23:18</div>
+            <div class="log-operator">系统</div>
+            <div class="log-action-col">
+              <span class="log-type alert">预警</span>
+              自动触发危机预警：<span class="log-target">用户****7823</span> 在AI对话中表达自伤意念
+            </div>
+          </div>
+          <div class="log-item">
+            <div class="log-time-col">2025-05-26 14:20:05</div>
+            <div class="log-operator">管理员</div>
+            <div class="log-action-col">
+              <span class="log-type update">更新</span>
+              修改了 <span class="log-target">青年知音</span> Agent 的温度参数（0.65→0.70）
+            </div>
+          </div>
+          <div class="log-item">
+            <div class="log-time-col">2025-05-26 12:05:31</div>
+            <div class="log-operator">系统</div>
+            <div class="log-action-col">
+              <span class="log-type create">创建</span>
+              新增树洞内容审核任务：<span class="log-target">匿名****43</span> 发布的内容
+            </div>
+          </div>
+          <div class="log-item">
+            <div class="log-time-col">2025-05-26 11:30:22</div>
+            <div class="log-operator">管理员</div>
+            <div class="log-action-col">
+              <span class="log-type update">更新</span>
+              通过了 <span class="log-target">匿名****91</span> 的树洞内容审核
+            </div>
+          </div>
+          <div class="log-item">
+            <div class="log-time-col">2025-05-26 10:15:44</div>
+            <div class="log-operator">管理员</div>
+            <div class="log-action-col">
+              <span class="log-type update">更新</span>
+              编辑了 <span class="log-target">GAD-7 广泛性焦虑量表</span> 的题目描述
+            </div>
+          </div>
+          <div class="log-item">
+            <div class="log-time-col">2025-05-26 09:41:08</div>
+            <div class="log-operator">系统</div>
+            <div class="log-action-col">
+              <span class="log-type alert">预警</span>
+              自动标记高风险树洞内容并隐藏：<span class="log-target">匿名****78</span>
+            </div>
+          </div>
+          <div class="log-item">
+            <div class="log-time-col">2025-05-25 22:10:16</div>
+            <div class="log-operator">系统</div>
+            <div class="log-action-col">
+              <span class="log-type alert">预警</span>
+              测评趋势异常告警：<span class="log-target">用户****3156</span> PHQ-9连续3次≥20分
+            </div>
+          </div>
+          <div class="log-item">
+            <div class="log-time-col">2025-05-25 18:30:00</div>
+            <div class="log-operator">管理员</div>
+            <div class="log-action-col">
+              <span class="log-type delete">删除</span>
+              删除了违规评论：<span class="log-target">评论ID#CK8921</span>
+            </div>
+          </div>
+          <div class="log-item">
+            <div class="log-time-col">2025-05-25 16:45:33</div>
+            <div class="log-operator">管理员</div>
+            <div class="log-action-col">
+              <span class="log-type create">创建</span>
+              新建量表：<span class="log-target">PSS-10 简版压力量表</span>（草稿状态）
+            </div>
+          </div>
+          <div class="log-item">
+            <div class="log-time-col">2025-05-25 14:20:11</div>
+            <div class="log-operator">管理员</div>
+            <div class="log-action-col">
+              <span class="log-type update">更新</span>
+              更新了系统设置：<span class="log-target">危机干预自动化</span> 开关
+            </div>
+          </div>
+        </div>
+        <div style="padding:var(--space-lg) var(--space-xl) var(--space-xl);">
+          <div class="pagination">
+            <div class="pagination-info">共 2,341 条记录</div>
+            <div class="pagination-btns">
+              <button class="page-btn disabled">‹</button>
+              <button class="page-btn active">1</button>
+              <button class="page-btn">2</button>
+              <button class="page-btn">3</button>
+              <button class="page-btn">›</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ===== 登录遮罩 ===== -->
+<div id="loginOverlay" style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;
+  background:var(--color-bg);display:flex;align-items:center;justify-content:center;">
+  <div style="background:var(--color-surface);border-radius:24px;padding:48px;width:400px;max-width:90%;box-shadow:0 8px 40px rgba(0,0,0,0.12);text-align:center;">
+    <div style="width:64px;height:64px;border-radius:16px;background:linear-gradient(135deg,#E8835A,#D4724B);
+      display:flex;align-items:center;justify-content:center;color:#fff;font-size:28px;font-weight:700;margin:0 auto 20px;">了</div>
+    <div style="font-size:24px;font-weight:700;margin-bottom:4px;">了然管理台</div>
+    <div style="font-size:13px;color:var(--color-text-tertiary);margin-bottom:32px;">后台管理系统登录</div>
+    <input id="adminPhone" type="text" placeholder="手机号" style="width:100%;padding:14px 16px;
+      border:1px solid var(--color-border);border-radius:12px;font-size:15px;margin-bottom:12px;outline:none;box-sizing:border-box;">
+    <input id="adminCode" type="text" placeholder="验证码（测试环境: 123456）" style="width:100%;padding:14px 16px;
+      border:1px solid var(--color-border);border-radius:12px;font-size:15px;margin-bottom:24px;outline:none;box-sizing:border-box;">
+    <button onclick="doAdminLogin()" style="width:100%;padding:14px;border-radius:12px;background:var(--color-primary);
+      color:#fff;font-size:16px;font-weight:600;border:none;cursor:pointer;">登 录</button>
+    <div id="loginError" style="color:var(--color-danger);font-size:12px;margin-top:12px;display:none;"></div>
+  </div>
+</div>
+
+<script>
+// ========== API 配置 ==========
+const API_BASE = 'http://localhost:3000';
+let authToken = localStorage.getItem('liaoran_admin_token') || '';
+let currentUser = null;
+
+// 鉴权请求
+async function apiFetch(path, method = 'GET', body = null) {
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': authToken ? 'Bearer ' + authToken : ''
+  };
+  const opts = { method, headers };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(API_BASE + path, opts);
+  if (res.status === 401) {
+    authToken = '';
+    localStorage.removeItem('liaoran_admin_token');
+    document.getElementById('loginOverlay').style.display = 'flex';
+    throw new Error('登录已过期');
+  }
+  const data = await res.json();
+  if (data.code !== 0) throw new Error(data.message || '请求失败');
+  return data.data;
+}
+
+// ========== 登录 ==========
+async function doAdminLogin() {
+  const phone = document.getElementById('adminPhone').value.trim();
+  const code = document.getElementById('adminCode').value.trim() || '123456';
+  const errEl = document.getElementById('loginError');
+  if (!phone) { errEl.textContent = '请输入手机号'; errEl.style.display = 'block'; return; }
+  try {
+    const res = await fetch(API_BASE + '/api/v1/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone, code })
+    });
+    const data = await res.json();
+    if (data.code === 0 && data.data) {
+      authToken = data.data.token;
+      currentUser = data.data.user;
+      localStorage.setItem('liaoran_admin_token', authToken);
+      document.getElementById('loginOverlay').style.display = 'none';
+      errEl.style.display = 'none';
+      document.getElementById('adminNameDisplay').textContent = currentUser.nickname || '管理员';
+      loadDashboardData();
+    } else {
+      errEl.textContent = data.message || '登录失败';
+      errEl.style.display = 'block';
+    }
+  } catch (e) {
+    errEl.textContent = '网络连接失败: ' + e.message;
+    errEl.style.display = 'block';
+  }
+}
+
+// 初始化
+(function init() {
+  if (authToken) {
+    document.getElementById('loginOverlay').style.display = 'none';
+    apiFetch('/api/v1/auth/me').then(user => {
+      currentUser = user;
+      document.getElementById('adminNameDisplay').textContent = user.nickname || '管理员';
+      loadDashboardData();
+    }).catch(() => {
+      authToken = '';
+      localStorage.removeItem('liaoran_admin_token');
+      document.getElementById('loginOverlay').style.display = 'flex';
+    });
+  }
+  // 回车登录
+  document.getElementById('adminCode').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doAdminLogin();
+  });
+  document.getElementById('adminPhone').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doAdminLogin();
+  });
+})();
+
+// ========== 数据加载 ==========
+async function loadDashboardData() {
+  try {
+    const data = await apiFetch('/api/v1/admin/dashboard');
+    const s = data.summary;
+    // 更新仪表盘卡片（仅限page-dashboard内）
+    const dashPage = document.getElementById('page-dashboard');
+    if (!dashPage) return;
+    const statCards = dashPage.querySelectorAll('.stats-row .stat-card .stat-value');
+    if (statCards.length >= 4) {
+      statCards[0].textContent = formatNum(s.totalUsers);
+      statCards[1].textContent = formatNum(s.activeSessions);
+      statCards[2].textContent = formatNum(s.totalAssessments);
+      statCards[3].textContent = formatNum(s.crisisAlerts);
+      if (s.crisisAlerts > 0) statCards[3].style.color = 'var(--color-crisis)';
+    }
+    // 更新测评管理页统计
+    const assessPage = document.getElementById('page-assessments');
+    if (assessPage) {
+      const assessCards = assessPage.querySelectorAll('.stat-card .stat-value');
+      if (assessCards.length >= 2) {
+        assessCards[1].textContent = formatNum(s.totalAssessments);
+      }
+    }
+  } catch (e) { console.error('加载仪表盘失败:', e); }
+}
+
+function updateStatCards(cards) {
+  cards.forEach(c => {
+    document.querySelectorAll(c.selector).forEach(el => {
+      el.textContent = c.value;
+      if (c.color) el.style.color = c.color;
+      if (c.trend) {
+        const trendEl = el.parentElement.querySelector('.stat-trend');
+        if (trendEl) trendEl.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg> ${c.trend}`;
+      }
+    });
+  });
+}
+
+function updateAssessStatCards(summary) {
+  const els = document.querySelectorAll('#page-assessments .stat-card .stat-value');
+  if (els[0]) els[0].textContent = '6'; // 量表总数
+  if (els[1]) els[1].textContent = formatNum(summary.totalAssessments);
+}
+
+function formatNum(n) { if (!n && n !== 0) return '0'; return n >= 10000 ? (n/10000).toFixed(1) + '万' : String(n); }
+
+// ========== 页面切换（增强版）==========
+function switchPage(pageId) {
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.classList.toggle('active', item.dataset.page === pageId);
+  });
+  document.querySelectorAll('.page').forEach(page => {
+    page.classList.toggle('active', page.id === 'page-' + pageId);
+  });
+  const titles = {
+    'dashboard':'数据仪表盘','users':'用户管理','assessments':'测评管理',
+    'assess-editor':'测评内容编辑','ai-analysis':'AI 分析中心',
+    'treehole':'树洞审核','ai-agents':'AI Agent 配置',
+    'crisis':'危机预警','settings':'系统设置','logs':'操作日志'
+  };
+  document.getElementById('pageTitle').textContent = titles[pageId] || '数据仪表盘';
+  document.getElementById('breadcrumbCurrent').textContent = titles[pageId] || '数据仪表盘';
+
+  // 动态加载数据
+  if (pageId === 'dashboard') loadDashboardData();
+  if (pageId === 'users') loadUsersData();
+  if (pageId === 'assessments') loadAssessmentsData();
+  if (pageId === 'treehole') loadTreeholeData();
+  if (pageId === 'crisis') loadCrisisData();
+  if (pageId === 'logs') loadLogsData();
+}
+
+// ========== 用户管理 ==========
+async function loadUsersData() {
+  try {
+    const data = await apiFetch('/api/v1/admin/users?page=1&limit=50');
+    const tbody = document.querySelector('#page-users tbody');
+    if (!tbody || !data.list) return;
+    tbody.innerHTML = data.list.map(u => `
+      <tr>
+        <td><div class="user-cell"><div class="user-avatar-sm" style="background:${avatarColor(u.id)}">${(u.nickname||'?')[0]}</div><span class="user-name">${u.nickname||'匿名用户'}</span></div></td>
+        <td style="color:var(--color-text-tertiary);font-family:var(--font-mono);font-size:12px">#${(u.id||'').slice(0, 8)}</td>
+        <td style="color:var(--color-text-secondary)">${u.created_at ? u.created_at.slice(0,10) : '---'}</td>
+        <td style="font-weight:500">---</td>
+        <td style="font-weight:500">---</td>
+        <td><span class="status-tag active"><span class="status-dot"></span>${u.status==='active'?'活跃':'正常'}</span></td>
+        <td><div class="action-btns"><button class="action-link">查看</button><button class="action-link">编辑</button></div></td>
+      </tr>
+    `).join('');
+    const paginationInfo = document.querySelector('#page-users .pagination-info');
+    if (paginationInfo) paginationInfo.textContent = `共 ${data.pagination.total} 条记录`;
+  } catch (e) { console.error('加载用户失败:', e); }
+}
+
+// ========== 测评管理 ==========
+async function loadAssessmentsData() {
+  try {
+    const scales = await apiFetch('/api/v1/admin/assessments');
+    const tbody = document.querySelector('#page-assessments tbody');
+    if (!tbody || !scales) return;
+    tbody.innerHTML = scales.map(s => `
+      <tr>
+        <td class="user-name">${s.name}</td>
+        <td><span class="emotion-tag">${s.category||'未分类'}</span></td>
+        <td>${s.question_count}题</td>
+        <td style="font-weight:500">---</td>
+        <td style="font-family:var(--font-mono);font-weight:600">---</td>
+        <td><span class="status-tag ${s.status==='published'?'active':'inactive'}"><span class="status-dot"></span>${s.status==='published'?'启用':'草稿'}</span></td>
+        <td><div class="action-btns"><button class="action-link">数据</button><button class="action-link">编辑</button></div></td>
+      </tr>
+    `).join('');
+  } catch (e) { console.error('加载测评失败:', e); }
+}
+
+// ========== 树洞审核 ==========
+async function loadTreeholeData() {
+  try {
+    const entries = await apiFetch('/api/v1/admin/treehole');
+    // 移除现有的 review-card 元素
+    const page = document.getElementById('page-treehole');
+    if (!page || !entries) return;
+    const existingCards = page.querySelectorAll('.review-card');
+    existingCards.forEach(card => card.remove());
+    // 在 toolbar 后面插入新内容
+    const toolbar = page.querySelector('.table-toolbar');
+    const insertPoint = toolbar ? toolbar.nextSibling : page.firstChild;
+    const container = document.createElement('div');
+    container.innerHTML = entries.map(e => `
+      <div class="review-card">
+        <div class="review-header">
+          <div class="review-anonymous">
+            <div class="anonymous-mask">👤</div>
+            <div><strong>匿名用户</strong><div class="review-meta">${e.created_at?e.created_at.slice(0,16):''}</div></div>
+          </div>
+          <span class="review-tag">待审核</span>
+        </div>
+        <div class="review-body">${(e.content||'').replace(/</g,'&lt;')}</div>
+        <div class="review-actions">
+          <button class="btn btn-ghost" style="color:var(--color-danger);">删除</button>
+          <button class="btn btn-ghost">举报</button>
+          <button class="btn btn-primary">通过审核</button>
+        </div>
+      </div>
+    `).join('');
+    if (toolbar) {
+      toolbar.after(container);
+    }
+  } catch (e) { console.error('加载树洞失败:', e); }
+}
+
+// ========== 危机预警 ==========
+async function loadCrisisData() {
+  try {
+    const users = await apiFetch('/api/v1/admin/crisis');
+    const page = document.getElementById('page-crisis');
+    if (!page) return;
+    // 更新统计数字
+    const urgentNum = page.querySelector('.crisis-stat.urgent .crisis-stat-num');
+    if (urgentNum) urgentNum.textContent = users ? users.length : 0;
+    // 更新预警列表
+    const alertList = page.querySelector('.alert-list');
+    if (!alertList) return;
+    if (!users || users.length === 0) {
+      alertList.innerHTML = '<li class="alert-item" style="justify-content:center;padding:48px;"><div class="alert-content"><div class="alert-title" style="text-align:center;color:var(--color-text-tertiary);">🎉 当前无高危预警用户</div></div></li>';
+      return;
+    }
+    alertList.innerHTML = users.map(u => `
+      <li class="alert-item">
+        <span class="alert-level high"></span>
+        <div class="alert-content">
+          <div class="alert-title">【高危】用户风险等级: ${u.risk_level || 'high'} — 压力指数: ${u.stress_level || '---'}</div>
+          <div class="alert-desc">最后互动: ${u.last_interaction_at ? u.last_interaction_at.slice(0,16) : '---'} | 联系方式: ${u.phone || u.email || '无'}</div>
+          <div class="alert-meta">
+            <span class="alert-time">${u.updated_at ? u.updated_at.slice(0,16) : '---'}</span>
+            <span class="alert-user">${u.nickname || '匿名用户'}</span>
+            <span class="alert-status pending">待处理</span>
+          </div>
+        </div>
+      </li>
+    `).join('');
+  } catch (e) { console.error('加载危机预警失败:', e); }
+}
+
+// ========== 操作日志 ==========
+async function loadLogsData() {
+  try {
+    const logs = await apiFetch('/api/v1/admin/logs?limit=100');
+    const list = document.querySelector('#page-logs .card-body');
+    if (!list || !logs) return;
+    list.innerHTML = logs.map(l => `
+      <div class="log-item">
+        <div class="log-time-col">${l.created_at?l.created_at.slice(0,19):''}</div>
+        <div class="log-operator">${l.operator||'系统'}</div>
+        <div class="log-action-col">
+          <span class="log-type ${l.action==='login'?'create':l.action||'update'}">${l.action||'操作'}</span>
+          ${l.detail||l.target||''}
+        </div>
+      </div>
+    `).join('');
+    document.querySelector('#page-logs .pagination-info').textContent = `共 ${logs.length} 条记录`;
+  } catch (e) { console.error('加载日志失败:', e); }
+}
+
+function avatarColor(id) {
+  const colors = ['#E8835A','#6BAF9E','#6B8EC7','#D4943A','#C75C5C','#8B7EC8'];
+  let hash = 0;
+  for (let i = 0; i < (id||'A').length; i++) hash = ((hash<<5)-hash) + id.charCodeAt(i);
+  return colors[Math.abs(hash) % colors.length];
+}
+
+// ========== 退出登录 ==========
+function adminLogout() {
+  authToken = '';
+  currentUser = null;
+  localStorage.removeItem('liaoran_admin_token');
+  document.getElementById('loginOverlay').style.display = 'flex';
+}
+
+// 滑块实时数值显示
+document.querySelectorAll('.config-slider').forEach(slider => {
+  slider.addEventListener('input', function() {
+    const valDisplay = this.parentElement.querySelector('.slider-value');
+    const val = this.value;
+    if (this.max === '100' && this.min === '0') {
+      valDisplay.textContent = (val / 100).toFixed(2);
+    } else if (this.max === '10') {
+      valDisplay.textContent = val + '/10';
+    } else if (this.max === '14') {
+      valDisplay.textContent = '每' + val + '天';
+    } else {
+      valDisplay.textContent = val;
+    }
+  });
+});
+
+// 图表动画入场
+setTimeout(() => {
+  const bars = document.querySelectorAll('.chart-bar');
+  bars.forEach((bar, i) => {
+    const h = bar.style.height;
+    bar.style.height = '0%';
+    setTimeout(() => { bar.style.height = h; }, i * 80);
+  });
+}, 300);
+</script>
+</body>
+</html>

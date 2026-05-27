@@ -1,0 +1,37 @@
+{
+  "name": "liaoran-backend",
+  "version": "1.0.0",
+  "description": "了然心理APP - 后端API服务",
+  "main": "dist/app.js",
+  "scripts": {
+    "dev": "ts-node-dev --respawn src/app.ts",
+    "build": "tsc",
+    "start": "node dist/app.js",
+    "db:migrate": "ts-node src/config/migrate.ts"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "bcryptjs": "^2.4.3",
+    "sql.js": "^1.10.3",
+    "uuid": "^9.0.0",
+    "multer": "^1.4.5-lts.1",
+    "dotenv": "^16.3.1",
+    "express-rate-limit": "^7.1.4",
+    "express-validator": "^7.0.1",
+    "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/cors": "^2.8.17",
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/uuid": "^9.0.7",
+    "@types/multer": "^1.4.11",
+    "@types/morgan": "^1.9.9",
+    "typescript": "^5.3.3",
+    "ts-node-dev": "^2.0.0"
+  }
+}

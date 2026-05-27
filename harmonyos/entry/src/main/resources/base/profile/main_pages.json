@@ -1,0 +1,12 @@
+{
+  "src": [
+    "pages/Index",
+    "pages/HomePage",
+    "pages/AssessPage",
+    "pages/ChatPage",
+    "pages/TreeholePage",
+    "pages/ProfilePage",
+    "pages/AssessQuestionsPage",
+    "pages/AssessResultPage"
+  ]
+}

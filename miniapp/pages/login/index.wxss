@@ -1,0 +1,47 @@
+.login-page {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; padding: 48rpx;
+  background: var(--color-bg);
+}
+
+.login-box {
+  width: 100%; max-width: 600rpx; text-align: center;
+}
+
+.login-logo {
+  width: 160rpx; height: 160rpx; border-radius: 40rpx;
+  background: var(--color-primary); color: #fff;
+  font-size: 72rpx; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 24rpx;
+}
+
+.login-title {
+  font-size: 56rpx; font-weight: 700;
+  color: var(--color-text-primary); display: block;
+}
+.login-subtitle {
+  font-size: 28rpx; color: var(--color-text-secondary);
+  display: block; margin-top: 8rpx;
+}
+.login-tagline {
+  font-size: 24rpx; color: var(--color-text-tertiary);
+  display: block; margin-top: 8rpx;
+}
+
+.input-group {
+  margin-top: 48rpx;
+}
+.login-input {
+  width: 100%; height: 96rpx; padding: 0 32rpx;
+  border-radius: 24rpx; background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  font-size: 30rpx; box-sizing: border-box;
+}
+
+.login-btn {
+  width: 100%; height: 96rpx; margin-top: 24rpx;
+  border-radius: 24rpx; background: var(--color-primary);
+  color: #fff; font-size: 32rpx; font-weight: 500;
+  border: none; line-height: 96rpx;
+}

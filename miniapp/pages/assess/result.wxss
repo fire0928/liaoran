@@ -1,0 +1,121 @@
+/* 了然小程序 - 测评结果页 */
+.result-page {
+  min-height: 100vh;
+  padding-bottom: 48rpx;
+  background: var(--color-bg);
+}
+
+.result-hero {
+  margin: 24rpx;
+  padding: 48rpx 32rpx;
+  border-radius: 40rpx;
+  text-align: center;
+}
+
+.points-badge {
+  display: inline-block;
+  margin-top: 16rpx;
+  padding: 10rpx 28rpx;
+  border-radius: 40rpx;
+  background: rgba(255,255,255,0.8);
+  color: var(--color-primary);
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+.score-circle-wrapper {
+  text-align: center;
+  margin: -20rpx 0 24rpx;
+  position: relative;
+  z-index: 2;
+}
+.score-circle {
+  width: 200rpx;
+  height: 200rpx;
+  border-radius: 50%;
+  margin: 0 auto;
+  background: var(--color-surface);
+  border: 6rpx solid var(--color-primary-light);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 32rpx rgba(232,131,90,0.15);
+}
+.score-value {
+  font-size: 64rpx;
+  font-weight: 700;
+  color: var(--color-primary);
+  line-height: 1.1;
+}
+.score-unit {
+  font-size: 24rpx;
+  color: var(--color-text-tertiary);
+  margin-top: 4rpx;
+}
+.score-range {
+  font-size: 24rpx;
+  color: var(--color-text-tertiary);
+  margin-top: 12rpx;
+  display: block;
+}
+
+.severity-badge {
+  display: inline-block;
+  padding: 14rpx 48rpx;
+  border-radius: 40rpx;
+  font-size: 32rpx;
+  font-weight: 700;
+}
+
+.dimension-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 20rpx;
+}
+.dimension-row > text:first-child {
+  width: 80rpx;
+  font-size: 26rpx;
+  flex-shrink: 0;
+}
+.dim-bar-bg {
+  flex: 1;
+  height: 16rpx;
+  border-radius: 8rpx;
+  background: var(--color-border-light);
+  overflow: hidden;
+}
+.dim-bar-fill {
+  height: 100%;
+  border-radius: 8rpx;
+  background: var(--color-primary);
+}
+
+.result-actions {
+  display: flex;
+  gap: 24rpx;
+  padding: 32rpx 24rpx;
+}
+.result-actions .btn-primary,
+.result-actions .btn-outline {
+  padding: 24rpx;
+  border-radius: 24rpx;
+  text-align: center;
+  font-size: 28rpx;
+  border: none;
+}
+.result-actions .btn-primary {
+  background: var(--color-primary);
+  color: #fff;
+}
+.result-actions .btn-outline {
+  background: transparent;
+  border: 2px solid var(--color-primary);
+  color: var(--color-primary);
+}
+
+.disclaimer {
+  text-align: center;
+  padding: 24rpx 48rpx;
+}

@@ -1,0 +1,22 @@
+.page { padding-bottom: 48rpx; }
+
+.assess-hero {
+  margin: 24rpx; padding: 48rpx 32rpx;
+  border-radius: 40rpx; text-align: center;
+  background: var(--color-primary-light);
+}
+
+.category-tabs {
+  white-space: nowrap; padding: 0 24rpx; margin-bottom: 16rpx;
+}
+.cat-tab {
+  display: inline-block; padding: 14rpx 28rpx;
+  border-radius: 40rpx; font-size: 26rpx; margin-right: 12rpx;
+  background: var(--color-surface); color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+}
+.cat-tab.active {
+  background: var(--color-primary); color: #fff; border-color: var(--color-primary);
+}
+
+.scales-list { padding: 0 24rpx; }

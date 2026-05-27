@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>了然 - AI心理认知与自我疗愈</title>
+  <style>
+    /* ============================================
+       设计令牌 - 网页版复用品牌体系
+       ============================================ */
+    :root {
+      --color-primary: #E8835A;
+      --color-primary-hover: #D4724B;
+      --color-primary-light: #FDF0EB;
+      --color-primary-soft: #F5C4AD;
+      --color-secondary: #6BAF9E;
+      --color-secondary-hover: #5A9D8C;
+      --color-secondary-light: #EDF7F4;
+      --color-bg: #FAF8F5;
+      --color-surface: #FFFFFF;
+      --color-surface-warm: #F7F4F0;
+      --color-border: #E8E2DB;
+      --color-border-light: #F0EBE5;
+      --color-text-primary: #2D2A26;
+      --color-text-secondary: #7A746C;
+      --color-text-tertiary: #A69E94;
+      --color-text-inverse: #FFFFFF;
+      --color-success: #5BA88D;
+      --color-success-bg: #EDF7F4;
+      --color-warning: #D4943A;
+      --color-warning-bg: #FDF5EC;
+      --color-danger: #C75C5C;
+      --color-danger-bg: #FDF0F0;
+      --color-info: #6B8EC7;
+      --color-info-bg: #EFF4FB;
+      --color-crisis: #B8652A;
+      --color-crisis-bg: #FFF5EB;
+      --color-crisis-text: #6B3A15;
+      --color-crisis-border: #E8A45C;
+      --color-chat-user-bg: #FDF0EB;
+      --color-chat-ai-bg: #FFFFFF;
+      --color-chat-ai-border: #E8E2DB;
+      --color-chat-input-bg: #F7F4F0;
+      --space-3xs: 2px; --space-2xs: 4px; --space-xs: 8px; --space-sm: 12px;
+      --space-md: 16px; --space-lg: 20px; --space-xl: 24px; --space-2xl: 32px; --space-3xl: 48px;
+      --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px; --radius-xl: 20px;
+      --shadow-subtle: 0 1px 2px rgba(45,42,38,0.04);
+      --shadow-raised: 0 2px 8px rgba(45,42,38,0.06);
+      --shadow-floating: 0 4px 16px rgba(45,42,38,0.08);
+      --font-heading: "PingFang SC","Hiragino Sans GB","Microsoft YaHei","WenQuanYi Micro Hei",system-ui,sans-serif;
+      --font-body: "PingFang SC","Hiragino Sans GB","Microsoft YaHei","WenQuanYi Micro Hei",system-ui,sans-serif;
+      --font-mono: "Cascadia Code","Source Code Pro",monospace;
+      --sidebar-width: 72px;
+      --sidebar-expanded: 220px;
+      --header-height: 64px;
+      --transition-fast: 150ms ease-out;
+      --transition-standard: 250ms ease-in-out;
+    }
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:var(--font-body); background:var(--color-bg); color:var(--color-text-primary); display:flex; min-height:100vh; overflow:hidden; }
+
+    /* ===== 左侧导航栏 ===== */
+    .sidebar {
+      width: var(--sidebar-width); height:100vh;
+      background:var(--color-surface);
+      border-right:1px solid var(--color-border-light);
+      display:flex; flex-direction:column; align-items:center;
+      position:fixed; top:0; left:0; z-index:100;
+      padding-top:var(--space-lg); transition:width var(--transition-standard);
+    }
+    .sidebar:hover { width:var(--sidebar-expanded); }
+    .sidebar-logo {
+      width:40px; height:40px; border-radius:var(--radius-md);
+      background:linear-gradient(135deg,var(--color-primary),#D4724B);
+      display:flex; align-items:center; justify-content:center;
+      color:#fff; font-weight:700; font-size:18px; margin-bottom:var(--space-2xl);
+      flex-shrink:0;
+    }
+    .nav-list { display:flex; flex-direction:column; gap:4px; width:100%; padding:0 var(--space-sm); }
+    .nav-link {
+      display:flex; align-items:center; gap:var(--space-md);
+      padding:12px; border-radius:var(--radius-md); cursor:pointer;
+      color:var(--color-text-tertiary); text-decoration:none;
+      transition:all var(--transition-fast); white-space:nowrap;
+      position:relative; justify-content:center;
+    }
+    .sidebar:hover .nav-link { justify-content:flex-start; padding-left:var(--space-lg); }
+    .nav-link svg { width:22px; height:22px; flex-shrink:0; opacity:0.75; }
+    .nav-link span { font-size:14px; font-weight:500; opacity:0; transition:opacity var(--transition-standard); }
+    .sidebar:hover .nav-link span { opacity:1; }
+    .nav-link:hover { background:var(--color-surface-warm); color:var(--color-text-primary); }
+    .nav-link:hover svg { opacity:1; }
+    .nav-link.active { background:var(--color-primary-light); color:var(--color-primary); }
+    .nav-link.active svg { opacity:1; }
+    .nav-tooltip {
+      position:absolute;left:calc(100% + 8px);top:50%;transform:translateY(-50%);
+      background:var(--color-sidebar-dark,#2D2A26); color:#fff; padding:6px 10px;
+      border-radius:6px; font-size:12px; white-space:nowrap; pointer-events:none;
+      opacity:0; transition:opacity 0.15s; z-index:200;
+    }
+    .sidebar:not(:hover) .nav-link:hover .nav-tooltip { opacity:1; }
+    .sidebar:hover .nav-tooltip { display:none; }
+
+    .nav-bottom { margin-top:auto; padding:var(--space-lg) 0 var(--space-xl); width:100%; }
+    /* 用户头像区 */
+    .user-profile-nav {
+      width:36px; height:36px; border-radius:50%;
+      background:linear-gradient(135deg,var(--color-secondary),#5A9D8C);
+      display:flex; align-items:center; justify-content:center;
+      color:#fff; font-size:13px; font-weight:600; cursor:pointer;
+      transition:transform var(--transition-fast);
+    }
+    .user-profile-nav:hover { transform:scale(1.05); }
+
+    /* ===== 主区域 ===== */
+    .main-area { flex:1; margin-left:var(--sidebar-width); display:flex; flex-direction:column; min-height:100vh; }
+    .topbar {
+      height: var(--header-height); background:var(--color-surface);
+      border-bottom:1px solid var(--color-border-light);
+      display:flex; align-items:center; justify-content:space-between;
+      padding:0 var(--space-2xl); position:sticky; top:0; z-index:50;
+    }
+    .topbar-title { font-size:20px; font-weight:700; color:var(--color-text-primary); letter-spacing:-0.01em; }
+    .topbar-subtitle { font-size:13px; color:var(--color-text-tertiary); margin-left:var(--space-sm); }
+    .topbar-right { display:flex; align-items:center; gap:var(--space-md); }
+    .icon-btn-sm {
+      width:38px; height:38px; border-radius:var(--radius-md); border:1px solid var(--color-border);
+      background:var(--color-surface); display:flex; align-items:center; justify-content:center;
+      cursor:pointer; color:var(--color-text-secondary); transition:all var(--transition-fast);
+    }
+    .icon-btn-sm:hover { background:var(--color-surface-warm); color:var(--color-text-primary); }
+    .user-mini {
+      display:flex; align-items:center; gap:var(--space-sm); padding:6px 12px;
+      border-radius:var(--radius-full); cursor:pointer; transition:background var(--transition-fast);
+    }
+    .user-mini:hover { background:var(--color-surface-warm); }
+    .user-mini-avatar { width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(--color-secondary),#5A9D8C); display:flex; align-items:center; justify-content:center; color:#fff; font-size:12px; font-weight:600; }
+    .user-mini-name { font-size:13px; font-weight:500; }
+
+    /* 内容区 */
+    .content { flex:1; padding:var(--space-2xl) var(--space-3xl); overflow-y:auto; }
+
+    /* 页面切换 */
+    .page-section { display:none; animation:fadeIn 0.25s ease-out; max-width:1200px; margin:0 auto; }
+    .page-section.active { display:block; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:translateY(0);} }
+
+    /* ========== 首页 ========== */
+    .welcome-banner {
+      background:linear-gradient(165deg, var(--color-bg) 0%, var(--color-primary-light) 40%, var(--color-secondary-light) 100%);
+      border-radius:var(--radius-xl); padding:var(--space-2xl) var(--space-3xl);
+      margin-bottom:var(--space-2xl); border:1px solid var(--color-border-light);
+    }
+    .welcome-row { display:flex; align-items:center; justify-content:space-between; }
+    .welcome-text h1 { font-size:28px; font-weight:700; line-height:1.3; margin-bottom:var(--space-xs); }
+    .welcome-text p { font-size:15px; color:var(--color-text-secondary); line-height:1.6; }
+    .welcome-quote {
+      margin-top:var(--space-lg); padding:var(--space-lg) var(--space-xl);
+      background:var(--color-surface); border-radius:var(--radius-lg);
+      border-left:3px solid var(--color-primary); display:inline-block;
+      max-width:520px;
+    }
+    .welcome-quote-text { font-size:16px; font-weight:600; color:var(--color-text-primary); line-height:1.6; font-style:italic; }
+    .welcome-quote-author { font-size:13px; color:var(--color-text-tertiary); margin-top:var(--space-xs); }
+
+    .home-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:var(--space-lg); margin-bottom:var(--space-2xl); }
+    .quick-card {
+      background:var(--color-surface); border:1px solid var(--color-border);
+      border-radius:var(--radius-lg); padding:var(--space-xl); cursor:pointer;
+      transition:all var(--transition-standard); display:flex; flex-direction:column;
+    }
+    .quick-card:hover { transform:translateY(-3px); box-shadow:var(--shadow-raised); border-color:var(--color-primary-soft); }
+    .quick-icon {
+      width:48px; height:48px; border-radius:var(--radius-md); display:flex;
+      align-items:center; justify-content:center; margin-bottom:var(--space-md);
+    }
+    .quick-icon.orange { background:var(--color-primary-light); color:var(--color-primary); }
+    .quick-icon.green { background:var(--color-secondary-light); color:var(--color-secondary); }
+    .quick-icon.blue { background:var(--color-info-bg); color:var(--color-info); }
+    .quick-icon.amber { background:var(--color-warning-bg); color:var(--color-warning); }
+    .quick-icon.purple { background:#F5F0F9; color:#9B7DC9; }
+    .quick-card h3 { font-size:16px; font-weight:600; margin-bottom:6px; }
+    .quick-card p { font-size:13px; color:var(--color-text-secondary); line-height:1.55; flex:1; }
+    .quick-arrow { font-size:13px; color:var(--color-primary); font-weight:500; margin-top:var(--space-md); display:flex; align-items:center; gap:4px; }
+
+    /* 每日打卡 */
+    .mood-checkin { background:var(--color-surface-warm); border-radius:var(--radius-xl); padding:var(--space-xl) var(--space-2xl); margin-bottom:var(--space-2xl); }
+    .mood-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:var(--space-lg); }
+    .mood-title { font-size:17px; font-weight:600; }
+    .mood-subtitle { font-size:13px; color:var(--color-text-secondary); }
+    .mood-options { display:flex; gap:var(--space-lg); }
+    .mood-option {
+      display:flex; flex-direction:column; align-items:center; gap:var(--space-sm);
+      cursor:pointer; padding:var(--space-md) var(--space-lg); border-radius:var(--radius-lg);
+      transition:all var(--transition-fast); border:2px solid transparent;
+      min-width:80px;
+    }
+    .mood-option:hover { background:var(--color-surface); }
+    .mood-option.selected { background:var(--color-primary-light); border-color:var(--color-primary); }
+    .mood-emoji { width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:26px; background:var(--color-surface); transition:transform var(--transition-fast); }
+    .mood-option:hover .mood-emoji, .mood-option.selected .mood-emoji { transform:scale(1.1); }
+    .mood-label { font-size:13px; font-weight:500; color:var(--color-text-secondary); }
+    .mood-option.selected .mood-label { color:var(--color-primary); font-weight:600; }
+
+    /* 我的动态 */
+    .my-activity { background:var(--color-surface); border:1px solid var(--color-border); border-radius:var(--radius-lg); padding:var(--space-xl) var(--space-2xl); }
+    .activity-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:var(--space-lg); }
+    .activity-title { font-size:17px; font-weight:600; }
+    .activity-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:var(--space-lg); }
+    .activity-item { text-align:center; }
+    .activity-value { font-size:28px; font-weight:700; color:var(--color-primary); line-height:1.2; }
+    .activity-label { font-size:13px; color:var(--color-text-secondary); margin-top:4px; }
+
+    /* Agent推荐 */
+    .agent-row { display:flex; gap:var(--space-lg); margin-bottom:var(--space-2xl); overflow-x:auto; padding-bottom:var(--space-sm); }
+    .agent-card-web {
+      min-width:240px; background:var(--color-surface); border:1px solid var(--color-border);
+      border-radius:var(--radius-lg); padding:var(--space-xl); cursor:pointer;
+      transition:all var(--transition-standard); flex-shrink:0;
+    }
+    .agent-card-web:hover { transform:translateY(-2px); box-shadow:var(--shadow-raised); border-color:var(--color-primary-soft); }
+    .agent-avatar-web {
+      width:44px; height:44px; border-radius:var(--radius-md);
+      display:flex; align-items:center; justify-content:center; color:#fff;
+      font-size:16px; font-weight:700; margin-bottom:var(--space-md);
+    }
+    .agent-name-web { font-size:15px; font-weight:600; margin-bottom:4px; }
+    .agent-desc-web { font-size:12px; color:var(--color-text-secondary); line-height:1.5; margin-bottom:var(--space-md); }
+    .agent-tag-web { font-size:11px; padding:3px 10px; border-radius:var(--radius-full); font-weight:500; background:var(--color-primary-light); color:var(--color-primary); display:inline-block; }
+
+    /* ========== 测评页面 ========== */
+    .assess-hero {
+      background:linear-gradient(135deg,var(--color-primary-light),var(--color-bg));
+      border-radius:var(--radius-xl); padding:var(--space-2xl) var(--space-3xl);
+      margin-bottom:var(--space-2xl); text-align:center;
+    }
+    .assess-hero h1 { font-size:26px; font-weight:700; margin-bottom:var(--space-sm); }
+    .assess-hero p { font-size:14px; color:var(--color-text-secondary); max-width:480px; margin:0 auto; }
+
+    .category-tabs { display:flex; gap:var(--space-sm); margin-bottom:var(--space-xl); flex-wrap:wrap; }
+    .cat-tab {
+      padding:8px 18px; border-radius:var(--radius-full); font-size:13px; font-weight:500;
+      cursor:pointer; border:1px solid var(--color-border); background:var(--color-surface);
+      color:var(--color-text-secondary); transition:all var(--transition-fast);
+    }
+    .cat-tab:hover { border-color:var(--color-primary); color:var(--color-primary); }
+    .cat-tab.active { background:var(--color-primary); color:#fff; border-color:var(--color-primary); }
+
+    .assess-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:var(--space-lg); }
+    .assess-card {
+      background:var(--color-surface); border:1px solid var(--color-border);
+      border-radius:var(--radius-lg); padding:var(--space-xl); cursor:pointer;
+      transition:all var(--transition-standard); border-left:4px solid transparent;
+    }
+    .assess-card:hover { transform:translateY(-2px); box-shadow:var(--shadow-raised); border-left-color:var(--color-primary); }
+    .assess-card-head { display:flex; align-items:start; justify-content:space-between; margin-bottom:var(--space-md); }
+    .assess-card-name { font-size:16px; font-weight:600; }
+    .assess-card-time { font-size:12px; color:var(--color-text-tertiary); }
+    .assess-card-desc { font-size:13px; color:var(--color-text-secondary); line-height:1.55; margin-bottom:var(--space-md); }
+    .assess-meta { display:flex; gap:var(--space-lg); font-size:12px; color:var(--color-text-tertiary); }
+    .assess-meta span { display:flex; align-items:center; gap:4px; }
+
+    /* ========== AI对话页面 ========== */
+    .chat-layout { display:flex; gap:0; height:calc(100vh - var(--header-height) - var(--space-2xl)*2 - 60px); min-height:500px; }
+    .chat-sidebar-w { width:260px; background:var(--color-surface); border:1px solid var(--color-border); border-radius:var(--radius-lg) 0 0 var(--radius-lg); display:flex; flex-direction:column; overflow:hidden; }
+    .chat-sidebar-header { padding:var(--space-md) var(--space-lg); border-bottom:1px solid var(--color-border-light); display:flex; align-items:center; justify-content:space-between; }
+    .chat-sidebar-title { font-size:14px; font-weight:600; }
+    .chat-new-btn { font-size:12px; color:var(--color-primary); cursor:pointer; font-weight:600; background:none;border:none; padding:4px 8px;border-radius:var(--radius-sm); transition:background var(--transition-fast); }
+    .chat-new-btn:hover { background:var(--color-primary-light); }
+    .chat-list-w { flex:1; overflow-y:auto; padding:var(--space-sm); }
+    .chat-item-w {
+      padding:var(--space-md) var(--space-lg); border-radius:var(--radius-md);
+      cursor:pointer; transition:background var(--transition-fast); margin-bottom:2px;
+    }
+    .chat-item-w:hover { background:var(--color-surface-warm); }
+    .chat-item-w.active { background:var(--color-primary-light); }
+    .chat-item-title { font-size:13px; font-weight:500; margin-bottom:2px; white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+    .chat-item-preview { font-size:11px; color:var(--color-text-tertiary); white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+    .chat-item-time { font-size:10px; color:var(--color-text-tertiary); margin-top:4px; }
+
+    .chat-main-w { flex:1; background:var(--color-surface); border:1px solid var(--color-border); border-radius:0 var(--radius-lg) var(--radius-lg) 0; display:flex; flex-direction:column; overflow:hidden; }
+    .chat-main-header { padding:var(--space-md) var(--space-xl); border-bottom:1px solid var(--color-border-light); display:flex; align-items:center; gap:var(--space-md); }
+    .chat-agent-avatar { width:32px; height:32px; border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center; color:#fff; font-size:13px; font-weight:700; }
+    .chat-agent-info { flex:1; }
+    .chat-agent-name { font-size:14px; font-weight:600; }
+    .chat-agent-status { font-size:11px; color:var(--color-success); }
+    .chat-messages-w { flex:1; overflow-y:auto; padding:var(--space-xl) var(--space-2xl); display:flex; flex-direction:column; gap:var(--space-lg); }
+
+    .msg-row { display:flex; gap:var(--space-md); max-width:80%; }
+    .msg-row.user { align-self:flex-end; flex-direction:row-reverse; }
+    .msg-bubble {
+      padding:var(--space-md) var(--space-lg); border-radius:18px; font-size:14px; line-height:1.65;
+    }
+    .msg-row.ai .msg-bubble {
+      background:var(--color-chat-ai-bg); border:1px solid var(--color-chat-ai-border);
+      border-radius:18px 18px 18px 4px; color:var(--color-text-primary);
+    }
+    .msg-row.user .msg-bubble {
+      background:var(--color-chat-user-bg); border-radius:18px 18px 4px 18px; color:var(--color-text-primary);
+    }
+    .msg-avatar-small { width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:600; flex-shrink:0; color:#fff; }
+    .msg-time { font-size:10px; color:var(--color-text-tertiary); margin-top:4px; }
+
+    .chat-input-area { padding:var(--space-md) var(--space-xl) var(--space-lg); border-top:1px solid var(--color-border-light); display:flex; gap:var(--space-md); align-items:flex-end; }
+    .chat-input-w {
+      flex:1; padding:12px 18px; border:1px solid var(--color-border);
+      border-radius:22px; background:var(--color-chat-input-bg);
+      font-size:14px; resize:none; outline:none; min-height:44px; max-height:120px;
+      font-family:var(--font-body); color:var(--color-text-primary);
+      line-height:1.5;
+    }
+    .chat-input-w:focus { border-color:var(--color-primary); }
+    .send-btn {
+      width:44px; height:44px; border-radius:50%;
+      background:var(--color-primary); color:#fff; border:none;
+      display:flex; align-items:center; justify-content:center;
+      cursor:pointer; transition:background var(--transition-fast); flex-shrink:0;
+    }
+    .send-btn:hover { background:var(--color-primary-hover); }
+
+    /* ========== 树洞页面 ========== */
+    .treehole-banner {
+      background:linear-gradient(135deg,#EDF7F4,#F7F4F0);
+      border-radius:var(--radius-xl); padding:var(--space-2xl) var(--space-3xl);
+      margin-bottom:var(--space-2xl); text-align:center;
+      position:relative; overflow:hidden;
+    }
+    .treehole-banner h1 { font-size:24px; font-weight:700; margin-bottom:var(--space-sm); }
+    .treehole-banner p { font-size:14px; color:var(--color-text-secondary); max-width:420px; margin:0 auto; }
+    .anonymous-badge {
+      display:inline-flex; align-items:center; gap:6px; margin-top:var(--space-md);
+      padding:6px 14px; border-radius:var(--radius-full); font-size:12px; font-weight:500;
+      background:rgba(107,175,158,0.15); color:var(--color-secondary);
+    }
+
+    .post-composer {
+      background:var(--color-surface); border:1px solid var(--color-border);
+      border-radius:var(--radius-lg); padding:var(--space-xl); margin-bottom:var(--space-2xl);
+    }
+    .composer-placeholder {
+      width:100%; min-height:80px; border:none; outline:none; resize:none;
+      font-size:14px; font-family:var(--font-body); color:var(--color-text-primary);
+      background:transparent; line-height:1.6;
+    }
+    .composer-placeholder::placeholder { color:var(--color-text-tertiary); }
+    .composer-footer { display:flex; align-items:center; justify-content:space-between; margin-top:var(--space-md); padding-top:var(--space-md); border-top:1px solid var(--color-border-light); }
+    .composer-tags input { display:none; }
+    .tag-chips { display:flex; gap:6px; flex-wrap:wrap; }
+    .tag-chip { font-size:12px; padding:4px 12px; border-radius:var(--radius-full); background:var(--color-surface-warm); color:var(--color-text-secondary); cursor:pointer; border:1px solid transparent; transition:all var(--transition-fast); }
+    .tag-chip:hover, .tag-chip.selected { background:var(--color-primary-light); color:var(--color-primary); border-color:var(--color-primary-soft); }
+
+    .posts-feed { display:flex; flex-direction:column; gap:var(--space-lg); }
+    .post-card {
+      background:var(--color-surface); border:1px solid var(--color-border);
+      border-radius:var(--radius-lg); padding:var(--space-xl) var(--space-2xl);
+      transition:box-shadow var(--transition-standard);
+    }
+    .post-card:hover { box-shadow:var(--shadow-raised); }
+    .post-header { display:flex; align-items:center; gap:var(--space-md); margin-bottom:var(--space-md); }
+    .post-anon-icon { width:34px; height:34px; border-radius:50%; background:var(--color-surface-warm); display:flex; align-items:center; justify-content:center; }
+    .post-author { font-size:14px; font-weight:500; }
+    .post-time { font-size:12px; color:var(--color-text-tertiary); margin-left:auto; }
+    .post-body { font-size:14px; line-height:1.75; color:var(--color-text-primary); margin-bottom:var(--space-md); }
+    .post-tags { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:var(--space-md); }
+    .post-actions { display:flex; gap:var(--space-xl); padding-top:var(--space-md); border-top:1px solid var(--color-border-light); }
+    .post-action { display:flex; align-items:center; gap:6px; font-size:13px; color:var(--color-text-tertiary); cursor:pointer; transition:color var(--transition-fast); background:none;border:none; }
+    .post-action:hover { color:var(--color-primary); }
+    .post-action.liked { color:var(--color-primary); }
+
+    /* ========== 个人中心 ========== */
+    .profile-layout { display:flex; gap:var(--space-2xl); }
+    .profile-sidebar-w { width:280px; flex-shrink:0; }
+    .profile-card {
+      background:var(--color-surface); border:1px solid var(--color-border);
+      border-radius:var(--radius-lg); padding:var(--space-2xl); text-align:center;
+    }
+    .profile-avatar-large {
+      width:80px; height:80px; border-radius:50%; margin:0 auto var(--space-md);
+      background:var(--color-primary-light); display:flex; align-items:center;
+      justify-content:center; font-size:28px; font-weight:700; color:var(--color-primary);
+    }
+    .profile-name-large { font-size:18px; font-weight:600; margin-bottom:4px; }
+    .profile-id { font-size:12px; color:var(--color-text-tertiary); margin-bottom:var(--space-lg); }
+    .profile-stats-w { display:flex; justify-content:center; gap:var(--space-2xl); padding:var(--space-lg) 0; border-top:1px solid var(--color-border-light); border-bottom:1px solid var(--color-border-light); margin-bottom:var(--space-lg); }
+    .profile-stat-w { text-align:center; }
+    .profile-stat-num-w { font-size:20px; font-weight:700; color:var(--color-text-primary); }
+    .profile-stat-label-w { font-size:11px; color:var(--color-text-tertiary); margin-top:2px; }
+    .profile-menu-w { list-style:none; }
+    .profile-menu-w li { padding:10px 0; border-bottom:1px solid var(--color-border-light); display:flex; align-items:center; justify-content:space-between; cursor:pointer; font-size:14px; color:var(--color-text-secondary); transition:color var(--transition-fast); }
+    .profile-menu-w li:last-child { border-bottom:none; }
+    .profile-menu-w li:hover { color:var(--color-primary); }
+
+    .profile-main-w { flex:1; }
+    .profile-section { background:var(--color-surface); border:1px solid var(--color-border); border-radius:var(--radius-lg); padding:var(--space-xl) var(--space-2xl); margin-bottom:var(--space-lg); }
+    .profile-section-title { font-size:16px; font-weight:600; margin-bottom:var(--space-lg); padding-bottom:var(--space-sm); border-bottom:1px solid var(--color-border-light); }
+    .report-summary { display:grid; grid-template-columns:repeat(2,1fr); gap:var(--space-lg); }
+    .report-item { padding:var(--space-md); background:var(--color-surface-warm); border-radius:var(--radius-md); }
+    .report-item-label { font-size:12px; color:var(--color-text-secondary); margin-bottom:4px; }
+    .report-item-value { font-size:22px; font-weight:700; }
+    .report-item-detail { font-size:12px; color:var(--color-text-tertiary); margin-top:2px; }
+
+    .history-list { list-style:none; }
+    .history-item { display:flex; align-items:center; gap:var(--space-md); padding:var(--space-md) 0; border-bottom:1px solid var(--color-border-light); }
+    .history-item:last-child { border-bottom:none; }
+    .history-icon { width:40px; height:40px; border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+    .history-info { flex:1; }
+    .history-name { font-size:14px; font-weight:500; }
+    .history-date { font-size:12px; color:var(--color-text-tertiary); }
+    .history-score { font-size:16px; font-weight:700; font-family:var(--font-mono); }
+
+    /* 响应式 */
+    @media (max-width: 900px) {
+      .home-grid { grid-template-columns:1fr 1fr; }
+      .activity-grid { grid-template-columns:repeat(2,1fr); }
+      .profile-layout { flex-direction:column; }
+      .profile-sidebar-w { width:auto; }
+      .assess-grid { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- 左侧导航栏 -->
+<aside class="sidebar">
+  <div class="sidebar-logo">了</div>
+  <nav class="nav-list">
+    <a class="nav-link active" data-page="home" onclick="switchPage('home')" title="首页">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>首页</span><div class="nav-tooltip">首页</div>
+    </a>
+    <a class="nav-link" data-page="assess" onclick="switchPage('assess')" title="测评">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      <span>测评</span><div class="nav-tooltip">测评</div>
+    </a>
+    <a class="nav-link" data-page="chat" onclick="switchPage('chat')" title="AI对话">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span>对话</span><div class="nav-tooltip">AI对话</div>
+    </a>
+    <a class="nav-link" data-page="treehole" onclick="switchPage('treehole')" title="树洞">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c4-4 8-7.5 8-12a8 8 0 1 0-16 0c0 4.5 4 8 8 12z"/><circle cx="12" cy="10" r="3"/><path d="M12 2v4"/><path d="M12 18v4"/></svg>
+      <span>树洞</span><div class="nav-tooltip">树洞</div>
+    </a>
+  </nav>
+  <div class="nav-bottom">
+    <div class="user-profile-nav" onclick="switchPage('profile')" title="我的"></div>
+  </div>
+</aside>
+
+<!-- 主区域 -->
+<div class="main-area">
+  <!-- 顶栏 -->
+  <header class="topbar">
+    <div style="display:flex;align-items:baseline;">
+      <span class="topbar-title" id="webTitle">首页</span>
+      <span class="topbar-subtitle" id="webSubtitle">— 了解自己，从这里开始</span>
+    </div>
+    <div class="topbar-right">
+      <button class="icon-btn-sm" title="搜索">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+      <button class="icon-btn-sm" title="通知">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      </button>
+      <div class="user-mini" onclick="switchPage('profile')">
+        <div class="user-mini-avatar">然</div>
+        <span class="user-mini-name">林小然</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- 内容 -->
+  <main class="content">
+
+    <!-- ============ 首页 ============ -->
+    <section class="page-section active" id="sec-home">
+      <!-- 欢迎横幅 -->
+      <div class="welcome-banner">
+        <div class="welcome-row">
+          <div class="welcome-text">
+            <h1>下午好，小然 ☀️</h1>
+            <p>今天也是了解自己的好日子。先记录一下此刻的心情吧。</p>
+          </div>
+        </div>
+        <div class="welcome-quote">
+          <div class="welcome-quote-text">\201C 认识你自己 \201D</div>
+          <div class="welcome-quote-author">— 苏格拉底</div>
+        </div>
+      </div>
+
+      <!-- 心情打卡 -->
+      <div class="mood-checkin">
+        <div class="mood-header">
+          <div><div class="mood-title">今天心情怎么样？</div><div class="mood-subtitle">记录此刻，让情绪有迹可循</div></div>
+          <span style="font-size:12px;color:var(--color-text-tertiary)">已连续打卡 7 天 🔥</span>
+        </div>
+        <div class="mood-options">
+          <div class="mood-option" onclick="selectMood(this)">
+            <div class="mood-emoji">😊</div>
+            <div class="mood-label">很不错</div>
+          </div>
+          <div class="mood-option selected" onclick="selectMood(this)">
+            <div class="mood-emoji">🙂</div>
+            <div class="mood-label">还可以</div>
+          </div>
+          <div class="mood-option" onclick="selectMood(this)">
+            <div class="mood-emoji">😐</div>
+            <div class="mood-label">一般般</div>
+          </div>
+          <div class="mood-option" onclick="selectMood(this)">
+            <div class="mood-emoji">😔</div>
+            <div class="mood-label">有点低落</div>
+          </div>
+          <div class="mood-option" onclick="selectMood(this)">
+            <div class="mood-emoji">😰</div>
+            <div class="mood-label">不太好</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 快捷入口 -->
+      <div class="home-grid">
+        <div class="quick-card" onclick="switchPage('assess')">
+          <div class="quick-icon orange">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          </div>
+          <h3>开始测评</h3>
+          <p>科学量表帮你深入了解情绪状态，发现被忽略的内心角落</p>
+          <div class="quick-arrow">去测评 →</div>
+        </div>
+        <div class="quick-card" onclick="switchPage('chat')">
+          <div class="quick-icon green">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <h3>和 AI 聊聊</h3>
+          <p>选择一位懂你的 AI 倾听伙伴，随时倾诉，随时被理解</p>
+          <div class="quick-arrow">开始对话 →</div>
+        </div>
+        <div class="quick-card" onclick="switchPage('treehole')">
+          <div class="quick-icon blue">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c4-4 8-7.5 8-12a8 8 0 1 0-16 0c0 4.5 4 8 8 12z"/><circle cx="12" cy="10" r="3"/></svg>
+          </div>
+          <h3>匿名树洞</h3>
+          <p>安全地表达那些说不出口的话，在这里你不需要伪装</p>
+          <div class="quick-arrow">进入树洞 →</div>
+        </div>
+      </div>
+
+      <!-- AI Agent 推荐 -->
+      <h3 style="margin-bottom:var(--space-lg);font-size:17px;font-weight:600;">为你推荐的倾听者</h3>
+      <div class="agent-row">
+        <div class="agent-card-web" onclick="switchPage('chat')">
+          <div class="agent-avatar-web" style="background:linear-gradient(135deg,#E8835A,#D4724B)">知</div>
+          <div class="agent-name-web">青年知音</div>
+          <div class="agent-desc-web">擅长校园生活、成长困惑、人际关系话题的共情型伙伴</div>
+          <span class="agent-tag-web">青少年方向</span>
+        </div>
+        <div class="agent-card-web" onclick="switchPage('chat')">
+          <div class="agent-avatar-web" style="background:linear-gradient(135deg,#6BAF9E,#5A9D8C)">通</div>
+          <div class="agent-name-web">通用助手</div>
+          <div class="agent-desc-web">全能型心理支持助手，覆盖日常情绪疏导、认知引导</div>
+          <span class="agent-tag-web">通用方向</span>
+        </div>
+        <div class="agent-card-web" onclick="switchPage('chat')">
+          <div class="agent-avatar-web" style="background:linear-gradient(135deg,#7AAED6,#5A9BC7)">情</div>
+          <div class="agent-name-web">情绪导航员</div>
+          <div class="agent-desc-web">帮助你识别、命名和理解复杂情绪，找到情绪出口</div>
+          <span class="agent-tag-web">情绪疏导</span>
+        </div>
+        <div class="agent-card-web" onclick="switchPage('chat')">
+          <div class="agent-avatar-web" style="background:linear-gradient(135deg,#D4943A,#C08430)">认</div>
+          <div class="agent-name-web">认知重构师</div>
+          <div class="agent-desc-web">引导发现不合理的思维模式，建立更健康的认知方式</div>
+          <span class="agent-tag-web">认知疗法</span>
+        </div>
+        <div class="agent-card-web" onclick="switchPage('chat')">
+          <div class="agent-avatar-web" style="background:linear-gradient(135deg,#B08DB9,#9A77A3)">念</div>
+          <div class="agent-name-web">正念陪伴者</div>
+          <div class="agent-desc-web">正念冥想引导，呼吸练习，帮你找回当下的平静感</div>
+          <span class="agent-tag-web">正念疗愈</span>
+        </div>
+      </div>
+
+      <!-- 我的数据 -->
+      <div class="my-activity">
+        <div class="activity-header">
+          <div class="activity-title">我的动态</div>
+          <span style="font-size:13px;color:var(--color-primary);cursor:pointer;font-weight:500;" onclick="switchPage('profile')">查看详情 →</span>
+        </div>
+        <div class="activity-grid">
+          <div class="activity-item">
+            <div class="activity-value">12</div>
+            <div class="activity-label">完成测评</div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-value">47</div>
+            <div class="activity-label">对话次数</div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-value">7</div>
+            <div class="activity-label">连续打卡</div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-value">23</div>
+            <div class="activity-label">树洞互动</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 测评页面 ============ -->
+    <section class="page-section" id="sec-assess">
+      <div class="assess-hero">
+        <h1>📋 科学测评，认识真实的自己</h1>
+        <p>基于心理学专业量表，多维度探索你的情绪状态、压力水平和认知模式</p>
+      </div>
+
+      <div class="category-tabs">
+        <span class="cat-tab active">全部</span>
+        <span class="cat-tab">情绪筛查</span>
+        <span class="cat-tab">压力评估</span>
+        <span class="cat-tab">人格特质</span>
+        <span class="cat-tab">幸福感</span>
+        <span class="cat-tab">人际关系</span>
+      </div>
+
+      <div class="assess-grid">
+        <div class="assess-card">
+          <div class="assess-card-head">
+            <div class="assess-card-name">PHQ-9 抑郁自评量表</div>
+            <div class="assess-card-time">约5分钟</div>
+          </div>
+          <div class="assess-card-desc">评估最近两周内抑郁症状的出现频率和严重程度，帮助识别是否需要专业关注</div>
+          <div class="assess-meta">
+            <span>📝 9道题</span>
+            <span>⭐ 已完成2次</span>
+          </div>
+        </div>
+        <div class="assess-card">
+          <div class="assess-card-head">
+            <div class="assess-card-name">GAD-7 广泛性焦虑量表</div>
+            <div class="assess-card-time">约3分钟</div>
+          </div>
+          <div class="assess-card-desc">评估焦虑症状的程度，涵盖紧张、担忧、无法放松等多个维度</div>
+          <div class="assess-meta">
+            <span>📝 7道题</span>
+            <span>⭐ 已完成1次</span>
+          </div>
+        </div>
+        <div class="assess-card">
+          <div class="assess-card-head">
+            <div class="assess-card-name">PSS-10 感知压力量表</div>
+            <div class="assess-card-time">约4分钟</div>
+          </div>
+          <div class="assess-card-desc">测量你对生活中压力源的主观感知程度，帮助理解压力来源</div>
+          <div class="assess-meta">
+            <span>📝 10道题</span>
+            <span>✨ 新测评</span>
+          </div>
+        </div>
+        <div class="assess-card">
+          <div class="assess-card-head">
+            <div class="assess-card-name">Rosenberg 自尊量表</div>
+            <div class="assess-card-time">约3分钟</div>
+          </div>
+          <div class="assess-card-desc">评估你的整体自尊水平，包括自我价值感和自我接纳程度</div>
+          <div class="assess-meta">
+            <span>📝 10道题</span>
+            <span>⭐ 已完成1次</span>
+          </div>
+        </div>
+        <div class="assess-card">
+          <div class="assess-card-head">
+            <div class="assess-card-name">SWLS 生活满意度量表</div>
+            <div class="assess-card-time">约2分钟</div>
+          </div>
+          <div class="assess-card-desc">评估你对整体生活的认知评价，从五个维度衡量满意度</div>
+          <div class="assess-meta">
+            <span>📝 5道题</span>
+            <span>⭐ 已完成3次</span>
+          </div>
+        </div>
+        <div class="assess-card">
+          <div class="assess-card-head">
+            <div class="assess-card-name">UCLA 孤独感量表</div>
+            <div class="assess-card-time">约4分钟</div>
+          </div>
+          <div class="assess-card-desc">评估主观孤独感程度，包含社交连接和情感疏离两个维度</div>
+          <div class="assess-meta">
+            <span>📝 20道题</span>
+            <span>✨ 新测评</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ AI对话页面 ============ -->
+    <section class="page-section" id="sec-chat">
+      <div class="chat-layout">
+        <!-- 对话列表侧边 -->
+        <div class="chat-sidebar-w">
+          <div class="chat-sidebar-header">
+            <span class="chat-sidebar-title">对话记录</span>
+            <button class="chat-new-btn">+ 新对话</button>
+          </div>
+          <div class="chat-list-w">
+            <div class="chat-item-w active">
+              <div class="chat-item-title">和青年知音的对话</div>
+              <div class="chat-item-preview">最近在学校的感受如何？</div>
+              <div class="chat-item-time">刚刚</div>
+            </div>
+            <div class="chat-item-w">
+              <div class="chat-item-title">和通用助手的对话</div>
+              <div class="chat-item-preview">关于工作压力的一些思考...</div>
+              <div class="chat-item-time">昨天 21:30</div>
+            </div>
+            <div class="chat-item-w">
+              <div class="chat-item-title">和情绪导航员的对话</div>
+              <div class="chat-item-preview">我好像不知道该怎么形容现在的感觉</div>
+              <div class="chat-item-time">前天 19:15</div>
+            </div>
+            <div class="chat-item-w">
+              <div class="chat-item-title">和认知重构师的对话</div>
+              <div class="chat-item-preview">总觉得别人在评判我...</div>
+              <div class="chat-item-time">3天前</div>
+            </div>
+            <div class="chat-item-w">
+              <div class="chat-item-title">和正念陪伴者的对话</div>
+              <div class="chat-item-preview">教我一个简单的呼吸方法吧</div>
+              <div class="chat-item-time">5天前</div>
+            </div>
+          </div>
+        </div>
+        <!-- 主对话区 -->
+        <div class="chat-main-w">
+          <div class="chat-main-header">
+            <div class="chat-agent-avatar" style="background:linear-gradient(135deg,#E8835A,#D4724B)">知</div>
+            <div class="chat-agent-info">
+              <div class="chat-agent-name">青年知音</div>
+              <div class="chat-agent-status">在线 · 通常秒回</div>
+            </div>
+          </div>
+          <div class="chat-messages-w">
+            <div class="msg-row ai">
+              <div class="msg-avatar-small" style="background:linear-gradient(135deg,#E8835A,#D4724B)">知</div>
+              <div>
+                <div class="msg-bubble">嗨小然！很高兴又见到你 😊 今天过得怎么样？有什么想聊聊的吗？不管大事小事，我都在这里听着。</div>
+                <div class="msg-time">14:20</div>
+              </div>
+            </div>
+            <div class="msg-row user">
+              <div class="msg-avatar-small" style="background:linear-gradient(135deg,#6BAF9E,#5A9D8C)">然</div>
+              <div>
+                <div class="msg-bubble">其实最近感觉有点迷茫，不知道自己在忙什么，但又停不下来</div>
+                <div class="msg-time">14:21</div>
+              </div>
+            </div>
+            <div class="msg-row ai">
+              <div class="msg-avatar-small" style="background:linear-gradient(135deg,#E8835A,#D4724B)">知</div>
+              <div>
+                <div class="msg-bubble">听起来像是那种「身体在跑，但不知道终点在哪」的感觉？这种感觉其实挺常见的，尤其是在节奏很快的时候。<br><br>我想确认一下——这种「停不下来」，更多是因为外部的事情推着你走，还是内心有一种不安，怕一旦停下来就会怎样？</div>
+                <div class="msg-time">14:22</div>
+              </div>
+            </div>
+            <div class="msg-row user">
+              <div class="msg-avatar-small" style="background:linear-gradient(135deg,#6BAF9E,#5A9D8C)">然</div>
+              <div>
+                <div class="msg-bubble">可能两种都有吧...感觉如果停下来就会被落下，但又不确定自己到底在追赶什么</div>
+                <div class="msg-time">14:24</div>
+              </div>
+            </div>
+            <div class="msg-row ai">
+              <div class="msg-avatar-small" style="background:linear-gradient(135deg,#E8835A,#D4724B)">知</div>
+              <div>
+                <div class="msg-bubble">谢谢你能这么坦诚地跟我说这些。「不知道在追赶什么却不敢停下」——这句话本身就很有力量，因为它说明你已经觉察到了某种模式的存在。<br><br>很多时候我们不是不想休息，而是不知道「安全的停止」长什么样。如果你想的话，我们可以一起慢慢梳理一下，看看这个「追赶」的背后，真正让你在意的是什么 💙</div>
+                <div class="msg-time">14:25</div>
+              </div>
+            </div>
+          </div>
+          <div class="chat-input-area">
+            <textarea class="chat-input-w" placeholder="输入你想说的话..." rows="1"></textarea>
+            <button class="send-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 树洞页面 ============ -->
+    <section class="page-section" id="sec-treehole">
+      <div class="treehole-banner">
+        <h1>🌳 匿名树洞</h1>
+        <p>在这里，你可以卸下所有面具。说出那些平时说不出口的话，这里只有理解和共鸣。</p>
+        <div class="anonymous-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c4-4 8-7.5 8-12a8 8 0 1 0-16 0c0 4.5 4 8 8 12z"/><circle cx="12" cy="10" r="3"/></svg>
+          完全匿名 · 安全加密 · 温暖社区
+        </div>
+      </div>
+
+      <!-- 发布器 -->
+      <div class="post-composer">
+        <textarea class="composer-placeholder" placeholder="说出你想说的话... 这里没有人认识你，也没有人评判你 ✨" rows="3"></textarea>
+        <div class="composer-footer">
+          <div class="tag-chips">
+            <span class="tag-chip" onclick="this.classList.toggle(selected')">😔 低落</span>
+            <span class="tag-chip" onclick="this.classList.toggle('selected')">😰 焦虑</span>
+            <span class="tag-chip" onclick="this.classList.toggle('selected')">😤 愤怒</span>
+            <span class="tag-chip" onclick="this.classList.toggle('selected')">😴 疲惫</span>
+            <span class="tag-chip" onclick="this.classList.toggle('selected')">🤔 困惑</span>
+            <span class="tag-chip" onclick="this.classList.toggle('selected')">💪 求助</span>
+            <span class="tag-chip" onclick="this.classList.toggle('selected')">🌤 分享</span>
+          </div>
+          <button class="btn btn-primary" style="padding:8px 20px; font-size:13px; border-radius:var(--radius-full);">发布到树洞</button>
+        </div>
+      </div>
+
+      <!-- 帖子流 -->
+      <div class="posts-feed">
+        <div class="post-card">
+          <div class="post-header">
+            <div class="post-anon-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-tertiary)" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 15s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+            </div>
+            <span class="post-author">匿名用户 ****91</span>
+            <span class="post-time">2小时前</span>
+          </div>
+          <div class="post-body">
+            最近总是睡不着，躺在床上翻来覆去到凌晨三四点。白天工作的时候也集中不了注意力，感觉整个人像飘在空中一样不真实。不知道是不是最近压力太大了，但又说不清楚具体是什么压力……有没有人也有这种感觉？你们都是怎么处理的？
+          </div>
+          <div class="post-tags">
+            <span class="emotion-tag">失眠</span>
+            <span class="emotion-tag">焦虑</span>
+            <span class="emotion-tag">求助</span>
+          </div>
+          <div class="post-actions">
+            <button class="post-action liked">❤️ 23</button>
+            <button class="post-action">💬 8 条回应</button>
+            <button class="post-action">🤗 给TA一个拥抱</button>
+          </div>
+        </div>
+
+        <div class="post-card">
+          <div class="post-header">
+            <div class="post-anon-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-tertiary)" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 15s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+            </div>
+            <span class="post-author">匿名用户 ****43</span>
+            <span class="post-time">4小时前</span>
+          </div>
+          <div class="post-body">
+            终于周五了！这一周真的太累了，感觉被掏空。但一想到周末又要加班就头疼。有时候觉得这样日复一日的生活到底有什么意义，但又不敢停下来。想听听大家周末都在做什么放松的事情。
+          </div>
+          <div class="post-tags">
+            <span class="emotion-tag">疲惫</span>
+            <span class="emotion-tag">职场</span>
+            <span class="emotion-tag">寻求共鸣</span>
+          </div>
+          <div class="post-actions">
+            <button class="post-action">❤️ 45</button>
+            <button class="post-action">💬 19 条回应</button>
+            <button class="post-action">🤗 给TA一个拥抱</button>
+          </div>
+        </div>
+
+        <div class="post-card">
+          <div class="post-header">
+            <div class="post-anon-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-tertiary)" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 15s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+            </div>
+            <span class="post-author">匿名用户 ****67</span>
+            <span class="post-time">昨天</span>
+          </div>
+          <div class="post-body">
+            今天终于鼓起勇气跟一个很久没联系的朋友发了消息，结果对方很快就回复了，而且很热情地约了周末出来见面。原来我一直担心的「尴尬」根本不存在，只是我自己想多了。分享给同样社恐的朋友们——迈出那一步真的没有想象中那么难 🌱
+          </div>
+          <div class="post-tags">
+            <span class="emotion-tag" style="background:var(--color-success-bg);color:var(--color-success)">成长</span>
+            <span class="emotion-tag">社交</span>
+            <span class="emotion-tag" style="background:var(--color-success-bg);color:var(--color-success)">正能量</span>
+          </div>
+          <div class="post-actions">
+            <button class="post-action liked">❤️ 127</button>
+            <button class="post-action">💬 31 条回应</button>
+            <button class="post-action">🤗 给TA一个拥抱</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 个人中心 ============ -->
+    <section class="page-section" id="sec-profile">
+      <div class="profile-layout">
+        <div class="profile-sidebar-w">
+          <div class="profile-card">
+            <div class="profile-avatar-large">然</div>
+            <div class="profile-name-large">林小然</div>
+            <div class="profile-id">ID: LR20250312****</div>
+            <div class="profile-stats-w">
+              <div class="profile-stat-w">
+                <div class="profile-stat-num-w">12</div>
+                <div class="profile-stat-label-w">测评</div>
+              </div>
+              <div class="profile-stat-w">
+                <div class="profile-stat-num-w">47</div>
+                <div class="profile-stat-label-w">对话</div>
+              </div>
+              <div class="profile-stat-w">
+                <div class="profile-stat-num-w">7天</div>
+                <div class="profile-stat-label-w">连续打卡</div>
+              </div>
+            </div>
+            <ul class="profile-menu-w">
+              <li>个人资料 <span style="color:var(--color-text-tertiary)">→</span></li>
+              <li>账号安全 <span style="color:var(--color-text-tertiary)">→</span></li>
+              <li>隐私设置 <span style="color:var(--color-text-tertiary)">→</span></li>
+              <li>消息通知 <span style="color:var(--color-text-tertiary)">→</span></li>
+              <li>关于了然 <span style="color:var(--color-text-tertiary)">→</span></li>
+            </ul>
+          </div>
+        </div>
+        <div class="profile-main-w">
+          <!-- 最近报告 -->
+          <div class="profile-section">
+            <div class="profile-section-title">📊 最近测评报告</div>
+            <div class="report-summary">
+              <div class="report-item">
+                <div class="report-item-label">PHQ-9 抑郁自评</div>
+                <div class="report-item-value" style="color:var(--color-success)">8 分</div>
+                <div class="report-item-detail">轻度 · 较上次改善 ↓3分 · 3天前</div>
+              </div>
+              <div class="report-item">
+                <div class="report-item-label">GAD-7 焦虑自评</div>
+                <div class="report-item-value" style="color:var(--color-success)">6 分</div>
+                <div class="report-item-detail">轻度 · 保持稳定 · 1周前</div>
+              </div>
+              <div class="report-item">
+                <div class="report-item-label">SWLS 生活满意度</div>
+                <div class="report-item-value" style="color:var(--color-primary)">20 分</div>
+                <div class="report-item-detail">中等偏上 · 较上次提升 ↑2分 · 5天前</div>
+              </div>
+              <div class="report-item">
+                <div class="report-item-label">PSS 感知压力</div>
+                <div class="report-item-value" style="color:var(--color-warning)">17 分</div>
+                <div class="report-item-detail">中等偏高 · 建议关注 · 2天前</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 测评历史 -->
+          <div class="profile-section">
+            <div class="profile-section-title">📋 全部测评历史</div>
+            <ul class="history-list">
+              <li class="history-item">
+                <div class="history-icon" style="background:var(--color-primary-light);color:var(--color-primary)">P</div>
+                <div class="history-info"><div class="history-name">PHQ-9 抑郁自评量表</div><div class="history-date">2025-05-23 完成</div></div>
+                <div class="history-score" style="color:var(--color-success)">8</div>
+              </li>
+              <li class="history-item">
+                <div class="history-icon" style="background:var(--color-info-bg);color:var(--color-info)">G</div>
+                <div class="history-info"><div class="history-name">GAD-7 广泛性焦虑量表</div><div class="history-date">2025-05-19 完成</div></div>
+                <div class="history-score" style="color:var(--color-success)">6</div>
+              </li>
+              <li class="history-item">
+                <div class="history-icon" style="background:var(--color-secondary-light);color:var(--color-secondary)">S</div>
+                <div class="history-info"><div class="history-name">SWLS 生活满意度量表</div><div class="history-date">2025-05-18 完成</div></div>
+                <div class="history-score" style="color:var(--color-primary)">20</div>
+              </li>
+              <li class="history-item">
+                <div class="history-icon" style="background:var(--color-warning-bg);color:var(--color-warning)">P</div>
+                <div class="history-info"><div class="history-name">PSS-10 感知压力量表</div><div class="history-date">2025-05-24 完成</div></div>
+                <div class="history-score" style="color:var(--color-warning)">17</div>
+              </li>
+              <li class="history-item">
+                <div class="history-icon" style="background:var(--color-surface-warm);color:var(--color-text-secondary)">R</div>
+                <div class="history-info"><div class="history-name">Rosenberg 自尊量表</div><div class="history-date">2025-05-10 完成</div></div>
+                <div class="history-score" style="color:var(--color-primary)">28</div>
+              </li>
+            </ul>
+          </div>
+
+          <!-- 成长轨迹提示 -->
+          <div class="profile-section" style="border-color:var(--color-primary-soft); background:linear-gradient(135deg,var(--color-primary-light),var(--color-surface));">
+            <div style="display:flex;align-items:center;gap:var(--space-md);">
+              <div style="font-size:32px;">🌱</div>
+              <div>
+                <div style="font-size:15px;font-weight:600;margin-bottom:4px;">你的成长轨迹</div>
+                <div style="font-size:13px;color:var(--color-text-secondary);line-height:1.55;">
+                  过去30天内，你的抑郁评分下降了<strong style="color:var(--color-success)">3分</strong>，
+                  生活满意度提升了<strong style="color:var(--color-primary)">2分</strong>。
+                  你正在朝着更好的方向前进，继续加油 💪
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+// 页面切换
+function switchPage(pageId) {
+  document.querySelectorAll('.nav-link').forEach(link => {
+    link.classList.toggle('active', link.dataset.page === pageId);
+  });
+  document.querySelectorAll('.page-section').forEach(sec => {
+    sec.classList.toggle('active', sec.id === 'sec-' + pageId);
+  });
+  const titles = {
+    'home': ['首页','— 了解自己，从这里开始'],
+    'assess': ['测评','— 科学量表，深度自我探索'],
+    'chat': ['AI对话','— 和懂你的AI伙伴聊聊'],
+    'treehole': ['树洞','— 匿名安全地说出心里话'],
+    'profile': ['我的','— 你的个人空间']
+  };
+  const t = titles[pageId] || ['首页',''];
+  document.getElementById('webTitle').textContent = t[0];
+  document.getElementById('webSubtitle').textContent = t[1];
+}
+
+// 心情选择
+function selectMood(el) {
+  document.querySelectorAll('.mood-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+// 分类Tab
+document.querySelectorAll('.cat-tab').forEach(tab => {
+  tab.addEventListener('click', function() {
+    document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+// 树洞标签选择（修复onclick中的引号问题）
+document.querySelectorAll('.tag-chip').forEach(chip => {
+  chip.addEventListener('click', function() { this.classList.toggle('selected'); });
+});
+</script>
+</body>
+</html>

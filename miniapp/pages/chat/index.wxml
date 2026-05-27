@@ -1,0 +1,29 @@
+<!-- 了然小程序 - 对话页 -->
+<view class="chat-page">
+  <!-- 头部 -->
+  <view class="chat-header">
+    <view class="chat-agent-avatar">AI</view>
+    <view>
+      <text class="text-lg font-bold">AI倾听伙伴</text>
+      <text class="text-sm" style="color:var(--color-success);display:block;">在线 · 通常秒回</text>
+    </view>
+  </view>
+
+  <!-- 消息列表 -->
+  <scroll-view scroll-y class="chat-messages" scroll-into-view="msg-{{messages.length-1}}" scroll-with-animation>
+    <view wx:for="{{messages}}" wx:key="id" id="msg-{{index}}"
+          class="msg-row {{item.role === 'user' ? 'msg-user' : 'msg-ai'}}">
+      <view class="msg-bubble {{item.role === 'user' ? 'bubble-user' : 'bubble-ai'}}">
+        <text>{{item.content}}</text>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 输入区 -->
+  <view class="chat-input-area">
+    <input class="chat-input" value="{{inputText}}"
+           placeholder="输入你想说的话..." bindinput="onInput"
+           confirm-type="send" bindconfirm="onSend"/>
+    <button class="send-btn" bindtap="onSend" disabled="{{!inputText.trim()}}">发送</button>
+  </view>
+</view>

@@ -1,0 +1,31 @@
+<!-- 了然小程序 - 测评页 -->
+<view class="page">
+  <!-- Hero -->
+  <view class="assess-hero">
+    <text class="text-xl font-bold">📋 科学测评，认识真实的自己</text>
+    <text class="text-sm text-secondary" style="display:block;margin-top:8rpx;">基于心理学专业量表，多维度探索你的情绪状态、压力水平和认知模式</text>
+  </view>
+
+  <!-- 分类 -->
+  <scroll-view scroll-x class="category-tabs">
+    <view wx:for="{{categories}}" wx:key="key"
+          class="cat-tab {{selectedCategory === item.key ? 'active' : ''}}"
+          data-key="{{item.key}}" bindtap="onSelectCategory">{{item.label}}</view>
+  </scroll-view>
+
+  <!-- 量表列表 -->
+  <view class="scales-list">
+    <view wx:for="{{scales}}" wx:key="id" class="card"
+          data-scale="{{item}}" bindtap="onStartAssess">
+      <view class="flex-between">
+        <text class="text-lg font-bold" style="flex:1;">{{item.name}}</text>
+        <text class="text-sm text-tertiary">约{{item.estimated_minutes}}分钟</text>
+      </view>
+      <text class="text-sm text-secondary" style="display:block;margin-top:8rpx;">{{item.description}}</text>
+      <view class="flex" style="gap:32rpx;margin-top:16rpx;">
+        <text class="text-sm text-tertiary">📝 {{item.question_count}}题</text>
+        <text class="text-sm" wx:if="{{item.completedCount > 0}}" style="color:var(--color-success);">✅ 已完成{{item.completedCount}}次</text>
+      </view>
+    </view>
+  </view>
+</view>

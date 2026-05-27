@@ -1,0 +1,51 @@
+<!-- 了然小程序 - 测评结果页 -->
+<view class="result-page">
+  <!-- 标题 -->
+  <view class="result-hero" style="background: {{severity === 'healthy' ? 'var(--color-secondary-light)' : severity === 'mild' ? '#FEF9F0' : severity === 'moderate' ? 'var(--color-primary-light)' : '#FFF0F0'}};">
+    <text class="text-xl font-bold">🎉 测评完成</text>
+    <text class="text-sm text-secondary" style="display:block;margin-top:8rpx;">{{scaleName}}</text>
+    <view wx:if="{{pointsEarned > 0}}" class="points-badge">+{{pointsEarned}} 积分</view>
+  </view>
+
+  <!-- 分数圆环 -->
+  <view class="score-circle-wrapper">
+    <view class="score-circle">
+      <text class="score-value">{{totalScore}}</text>
+      <text class="score-unit">分</text>
+    </view>
+    <text class="score-range">满分 {{maxScore}}</text>
+  </view>
+
+  <!-- 严重程度 -->
+  <view class="card" style="text-align:center;">
+    <view class="severity-badge" style="background: {{severity === 'healthy' ? '#EDF7F4' : severity === 'mild' ? '#FEF9F0' : severity === 'moderate' ? 'var(--color-primary-light)' : '#FFF0F0'}}; color: {{severity === 'healthy' ? 'var(--color-success)' : severity === 'mild' ? 'var(--color-warning)' : severity === 'moderate' ? 'var(--color-primary)' : 'var(--color-danger)'}};">
+      {{severityLabel}}
+    </view>
+    <text class="text-base text-secondary" style="display:block;margin-top:24rpx;line-height:1.8;">
+      {{interpretation}}
+    </text>
+  </view>
+
+  <!-- 维度得分 -->
+  <view wx:if="{{Object.keys(dimensionScores).length > 0}}" class="card">
+    <text class="text-lg font-bold" style="margin-bottom:24rpx;display:block;">各维度得分</text>
+    <view wx:for="{{dimensionScores}}" wx:key="*this" class="dimension-row">
+      <text class="text-base">{{item}}</text>
+      <view class="dim-bar-bg">
+        <view class="dim-bar-fill" style="width: {{Math.min(item * 10, 100)}}%;"></view>
+      </view>
+      <text class="text-sm font-bold" style="width:80rpx;text-align:right;">{{item}}分</text>
+    </view>
+  </view>
+
+  <!-- 操作 -->
+  <view class="result-actions">
+    <button class="btn-primary" style="flex:1;" bindtap="goHistory">返回首页</button>
+    <button class="btn-outline" style="flex:1;" open-type="share">分享结果</button>
+  </view>
+
+  <!-- 温馨提示 -->
+  <view class="disclaimer">
+    <text class="text-sm text-tertiary">⚠️ 本测评仅供参考，不能替代专业心理诊断。如有需要请寻求专业帮助。</text>
+  </view>
+</view>

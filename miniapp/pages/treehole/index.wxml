@@ -1,0 +1,52 @@
+<!-- 了然小程序 - 树洞页 -->
+<view class="page">
+  <!-- 横幅 -->
+  <view class="treehole-banner">
+    <text class="text-xl font-bold">🌳 匿名树洞</text>
+    <text class="text-sm text-secondary" style="display:block;margin-top:8rpx;">在这里，你可以卸下所有面具</text>
+    <view class="anonymous-badge">
+      <text>🔒 完全匿名 · 安全加密 · 温暖社区</text>
+    </view>
+  </view>
+
+  <!-- 发布按钮 -->
+  <view class="card" style="text-align:center;" bindtap="onShowComposer">
+    <text class="text-lg" style="color:var(--color-text-tertiary);">说出你想说的话...</text>
+    <view style="margin-top:16rpx;">
+      <text class="btn-primary" style="display:inline-block;padding:16rpx 48rpx;">📝 写下心情</text>
+    </view>
+  </view>
+
+  <!-- 树洞列表 -->
+  <view class="treehole-list">
+    <view wx:for="{{entries}}" wx:key="id" class="card">
+      <view class="flex-between mb-8">
+        <view class="flex" style="align-items:center;gap:12rpx;">
+          <view class="anon-avatar">👤</view>
+          <text class="text-lg font-medium">匿名用户</text>
+        </view>
+        <text class="text-sm text-tertiary">{{item.created_at ? item.created_at.slice(0,10) : (item.createdAt ? item.createdAt.slice(0,10) : '')}}</text>
+      </view>
+      <text class="text-base">{{item.content}}</text>
+      <view wx:if="{{item.mood && item.mood !== 'other'}}" class="mood-tag">💭 {{item.mood}}</view>
+    </view>
+  </view>
+
+  <!-- 发布弹窗 -->
+  <view wx:if="{{showComposer}}" class="composer-mask" bindtap="onHideComposer">
+    <view class="composer-dialog" catchtap>
+      <text class="text-xl font-bold" style="margin-bottom:24rpx;">发布树洞</text>
+      <textarea class="composer-textarea" value="{{composerText}}"
+                placeholder="说出你想说的话..."
+                maxlength="500" bindinput="onTextInput"
+                auto-height/>
+      <view class="text-sm text-tertiary" style="margin-top:8rpx;">{{composerText.length}}/500</view>
+      <view class="flex" style="gap:24rpx;margin-top:24rpx;">
+        <button class="btn-outline" style="flex:1;" bindtap="onHideComposer">取消</button>
+        <button class="btn-primary" style="flex:1;"
+                bindtap="onSubmitTreehole"
+                disabled="{{!composerText.trim()}}">发布</button>
+      </view>
+    </view>
+  </view>
+</view>

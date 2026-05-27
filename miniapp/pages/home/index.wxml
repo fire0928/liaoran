@@ -1,0 +1,85 @@
+<!-- 了然小程序 - 首页 -->
+<view class="page">
+  <!-- 欢迎区 -->
+  <view class="welcome-banner">
+    <view class="welcome-text">
+      <text class="welcome-title">下午好，{{userInfo?.nickname || '了然用户'}} ☀️</text>
+      <text class="welcome-desc">今天也是了解自己的好日子</text>
+    </view>
+    <view class="welcome-quote">
+      <text class="welcome-quote-text">「认识你自己」</text>
+      <text class="welcome-quote-author">— 苏格拉底</text>
+    </view>
+  </view>
+
+  <!-- 心情打卡 -->
+  <view class="card card-warm">
+    <view class="flex-between mb-8">
+      <view>
+        <text class="text-lg font-medium">今天心情怎么样？</text>
+        <text class="text-sm text-tertiary" style="display:block;margin-top:4rpx;">连续打卡 {{stats.streak}} 天 🔥</text>
+      </view>
+    </view>
+    <scroll-view scroll-x class="mood-scroll">
+      <view class="flex" style="gap:16rpx;">
+        <view wx:for="{{moods}}" wx:key="value"
+              class="mood-chip" data-mood="{{item.value}}"
+              bindtap="onCheckin">{{item.label}}</view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 快捷入口 -->
+  <view class="flex" style="margin:12rpx 24rpx;gap:16rpx;">
+    <view class="quick-card" style="background:var(--color-primary-light);" bindtap="goAssess">
+      <text class="text-lg font-bold" style="color:var(--color-primary);">开始测评</text>
+      <text class="text-sm text-secondary">科学量表了解情绪状态</text>
+    </view>
+    <view class="quick-card" style="background:var(--color-secondary-light);" bindtap="goChat">
+      <text class="text-lg font-bold" style="color:var(--color-secondary);">和AI聊聊</text>
+      <text class="text-sm text-secondary">找一位懂你的AI伙伴</text>
+    </view>
+  </view>
+  <view class="flex" style="margin:12rpx 24rpx;gap:16rpx;">
+    <view class="quick-card" style="background:#EFF4FB;width:100%;" bindtap="goTreehole">
+      <text class="text-lg font-bold" style="color:var(--color-info);">匿名树洞</text>
+      <text class="text-sm text-secondary">安全地说出心里话</text>
+    </view>
+  </view>
+
+  <!-- AI Agent推荐 -->
+  <view class="text-xl font-bold" style="margin:24rpx 24rpx 12rpx;">为你推荐的倾听者</view>
+  <scroll-view scroll-x>
+    <view class="flex" style="gap:16rpx;padding:0 24rpx;">
+      <view wx:for="{{agents}}" wx:key="type" class="agent-card" data-type="{{item.type}}" bindtap="onStartChat">
+        <view class="agent-avatar">{{item.name[0]}}</view>
+        <text class="text-lg font-bold" style="margin-top:12rpx;">{{item.name}}</text>
+        <text class="text-sm text-secondary" style="margin-top:4rpx;">{{item.desc}}</text>
+        <text class="agent-tag">{{item.tag}}</text>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 我的动态 -->
+  <view class="card" style="margin-top:24rpx;">
+    <text class="text-lg font-bold">我的动态</text>
+    <view class="flex stats-row">
+      <view class="stat-item">
+        <text class="stat-value" style="color:var(--color-primary);">{{stats.assessCount}}</text>
+        <text class="text-sm text-tertiary">完成测评</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-value" style="color:var(--color-secondary);">{{stats.chatCount}}</text>
+        <text class="text-sm text-tertiary">对话次数</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-value" style="color:var(--color-primary);">{{stats.streak}}</text>
+        <text class="text-sm text-tertiary">连续打卡</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-value" style="color:var(--color-info);">{{stats.treeholeCount}}</text>
+        <text class="text-sm text-tertiary">树洞互动</text>
+      </view>
+    </view>
+  </view>
+</view>

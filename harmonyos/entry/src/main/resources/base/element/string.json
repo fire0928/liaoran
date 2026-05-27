@@ -1,0 +1,21 @@
+{
+  "string": [
+    { "name": "app_name", "value": "了然" },
+    { "name": "module_desc", "value": "AI心理认知与自我疗愈" },
+    { "name": "EntryAbility_desc", "value": "了然主页面" },
+    { "name": "EntryAbility_label", "value": "了然" }
+  ],
+  "color": [
+    { "name": "primary", "value": "#E8835A" },
+    { "name": "primary_light", "value": "#FDF0EB" },
+    { "name": "secondary", "value": "#6BAF9E" },
+    { "name": "secondary_light", "value": "#EDF7F4" },
+    { "name": "background", "value": "#FAF8F5" },
+    { "name": "surface", "value": "#FFFFFF" },
+    { "name": "text_primary", "value": "#2D2A26" },
+    { "name": "text_secondary", "value": "#7A746C" },
+    { "name": "text_tertiary", "value": "#A69E94" },
+    { "name": "border_color", "value": "#E8E2DB" },
+    { "name": "start_window_background", "value": "#FAF8F5" }
+  ]
+}

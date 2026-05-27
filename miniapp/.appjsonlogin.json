@@ -1,0 +1,10 @@
+{
+  "pages": [
+    "pages/home/index",
+    "pages/login/index",
+    "pages/assess/index",
+    "pages/chat/index",
+    "pages/treehole/index",
+    "pages/profile/index"
+  ]
+}

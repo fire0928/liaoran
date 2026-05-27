@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Liaoran" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:colorBackground">#FAF8F5</item>
+        <item name="android:statusBarColor">#FAF8F5</item>
+        <item name="android:navigationBarColor">#FFFFFF</item>
+    </style>
+
+    <!-- 品牌色 -->
+    <color name="primary">#E8835A</color>
+    <color name="primary_light">#FDF0EB</color>
+    <color name="secondary">#6BAF9E</color>
+    <color name="secondary_light">#EDF7F4</color>
+    <color name="background">#FAF8F5</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="surface_warm">#F7F4F0</color>
+    <color name="border">#E8E2DB</color>
+    <color name="text_primary">#2D2A26</color>
+    <color name="text_secondary">#7A746C</color>
+    <color name="text_tertiary">#A69E94</color>
+</resources>
